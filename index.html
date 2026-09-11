@@ -42,7 +42,7 @@
    solo y deja los textos en gris. */
 :root{color-scheme:only light}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{background:var(--crema)}
+html{background:var(--crema);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;padding:0}
 body{
   font-family:var(--sans);
@@ -57,7 +57,10 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 h1,h2,h3,h4{font-family:var(--serif);font-weight:400;margin:0;letter-spacing:.01em}
-button{font-family:var(--sans);font-weight:300;cursor:pointer}
+/* Sin un color explícito, Safari en iPhone pinta el texto de los botones con
+   el azul de acento del sistema. En la computadora no se nota. */
+button{font-family:var(--sans);font-weight:300;cursor:pointer;color:var(--texto);-webkit-appearance:none;appearance:none}
+button h1,button h2,button h3,button h4,button span,button div,button i{color:inherit}
 input,select,textarea{font-family:var(--sans);font-weight:300;color:var(--texto)}
 a{color:var(--marron);text-decoration:none}
 
