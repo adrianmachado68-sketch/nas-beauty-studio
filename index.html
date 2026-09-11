@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="es-CR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NÄS Beauty Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   NÄS Beauty Studio — demo de agenda
+   Un solo archivo. Sin build. Persistencia en localStorage.
+   ============================================================ */
+:root{
+  --taupe:#B5AC9C;
+  --crema:#F5F1EA;
+  --marron:#8C7259;
+  --marron-claro:#A88B6D;
+  --texto:#3D3630;
+  --blanco:#FFFFFF;
+
+  --tenue:#6E645A;
+  --linea:rgba(140,114,89,.18);
+  --linea-fuerte:rgba(140,114,89,.32);
+  --suave:#EFE9E1;
+  --arena:#E4DCD0;
+  --ok:#6F8467;
+  --alerta:#A9704F;
+
+  --serif:'Cormorant Garamond','Playfair Display',Georgia,'Times New Roman',serif;
+  --sans:'Jost','Century Gothic',Futura,'Segoe UI',system-ui,-apple-system,sans-serif;
+
+  --r:18px;
+  --r-sm:12px;
+  --sombra:0 1px 2px rgba(61,54,48,.03), 0 10px 30px rgba(61,54,48,.07);
+  --sombra-sm:0 1px 2px rgba(61,54,48,.04), 0 4px 14px rgba(61,54,48,.05);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--sans);
+  font-weight:300;
+  color:var(--texto);
+  background:linear-gradient(175deg,#FCFAF7 0%,var(--crema) 38%,#E7DFD3 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:400;margin:0;letter-spacing:.01em}
+button{font-family:var(--sans);font-weight:300;cursor:pointer}
+input,select,textarea{font-family:var(--sans);font-weight:300;color:var(--texto)}
+a{color:var(--marron);text-decoration:none}
+
+/* ---------- marco ---------- */
+.marco{max-width:440px;margin:0 auto;min-height:100vh;position:relative;background:rgba(255,255,255,.42);box-shadow:0 0 60px rgba(61,54,48,.06)}
+.marco.ancho{max-width:760px}
+.cuerpo{padding:0 22px 150px}
+.cuerpo.sin-barra{padding-bottom:40px}
+.cita-enc .h{white-space:nowrap}
+
+/* ---------- encabezado ---------- */
+.enc{position:sticky;top:0;z-index:40;padding:16px 22px 14px;background:linear-gradient(180deg,rgba(245,241,234,.97),rgba(245,241,234,.86));backdrop-filter:blur(10px);border-bottom:1px solid var(--linea);display:flex;align-items:center;gap:13px}
+.logo{width:46px;height:46px;border-radius:50%;object-fit:cover;flex:0 0 auto;box-shadow:0 2px 10px rgba(61,54,48,.12);background:var(--taupe)}
+.logo-fallback{width:46px;height:46px;border-radius:50%;background:var(--taupe);color:#fff;display:none;align-items:center;justify-content:center;font-family:var(--serif);font-size:19px;letter-spacing:.02em;flex:0 0 auto}
+.marca .n{font-family:var(--serif);font-size:25px;line-height:1;letter-spacing:.11em;color:var(--texto)}
+.marca .s{font-size:8.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--tenue);margin-top:5px}
+.enc .der{margin-left:auto;text-align:right;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--tenue)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:34px 22px 26px;text-align:center;overflow:hidden}
+.hero h1{font-size:31px;line-height:1.16;font-weight:300;letter-spacing:.005em}
+.hero h1 em{font-style:italic;color:var(--marron)}
+.hero p{margin:11px auto 0;max-width:300px;font-size:13.5px;color:var(--tenue);line-height:1.65}
+.rama{position:absolute;pointer-events:none;color:var(--marron);opacity:.15}
+.rama.izq{left:-46px;top:-8px;width:150px;transform:rotate(-8deg)}
+.rama.der{right:-52px;bottom:-30px;width:165px;transform:scaleX(-1) rotate(-14deg)}
+
+/* ---------- pasos ---------- */
+.pasos{display:flex;align-items:center;gap:6px;padding:4px 22px 0;max-width:440px;margin:0 auto}
+.pasos .p{height:2px;flex:1;background:var(--arena);border-radius:2px;overflow:hidden}
+.pasos .p i{display:block;height:100%;width:0;background:var(--marron-claro);transition:width .45s ease}
+.pasos .p.on i,.pasos .p.hecho i{width:100%}
+.paso-tit{padding:14px 22px 0;max-width:440px;margin:0 auto;display:flex;align-items:baseline;gap:10px}
+.paso-tit .num{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--marron-claro);white-space:nowrap}
+.paso-tit h2{font-size:24px;font-weight:300}
+
+/* ---------- tarjetas ---------- */
+.card{background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:16px;box-shadow:var(--sombra-sm)}
+.card+.card{margin-top:10px}
+.card.sel{border-color:var(--marron);background:linear-gradient(180deg,#fff,#FBF7F1);box-shadow:0 2px 4px rgba(140,114,89,.06),0 10px 26px rgba(140,114,89,.13)}
+.serv{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:15px 16px;box-shadow:var(--sombra-sm);transition:border-color .2s,box-shadow .2s,transform .12s}
+.serv:active{transform:scale(.995)}
+.serv .marca-sel{width:20px;height:20px;border-radius:50%;border:1px solid var(--linea-fuerte);flex:0 0 auto;margin-top:2px;display:flex;align-items:center;justify-content:center}
+.serv.sel{border-color:var(--marron);background:linear-gradient(180deg,#fff,#FBF7F1);box-shadow:0 2px 4px rgba(140,114,89,.06),0 10px 26px rgba(140,114,89,.13)}
+.serv.sel .marca-sel{background:var(--marron);border-color:var(--marron)}
+.serv.sel .marca-sel svg{display:block}
+.serv .marca-sel svg{display:none;width:11px;height:11px;stroke:#fff;stroke-width:2.4;fill:none}
+.serv .nom{font-family:var(--serif);font-size:18.5px;line-height:1.25;letter-spacing:.005em}
+.serv .meta{margin-top:5px;font-size:12px;color:var(--tenue);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.serv .precio{margin-left:auto;font-size:15px;letter-spacing:.02em;white-space:nowrap;padding-top:2px}
+.serv[disabled]{opacity:.4}
+
+.punto{width:3px;height:3px;border-radius:50%;background:var(--taupe);display:inline-block}
+.tag{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--marron-claro);border:1px solid var(--linea);border-radius:20px;padding:2px 7px;white-space:nowrap}
+.tag.aviso{color:var(--alerta);border-color:rgba(169,112,79,.3)}
+
+.nota{font-size:12.5px;color:var(--tenue);line-height:1.6}
+.nota-caja{background:rgba(181,172,156,.16);border:1px solid var(--linea);border-radius:var(--r-sm);padding:12px 14px;font-size:12.5px;color:var(--tenue);line-height:1.6}
+.sep{height:1px;background:var(--linea);margin:14px 0}
+.rot{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--marron-claro);margin:22px 0 10px}
+.rot:first-child{margin-top:0}
+
+/* ---------- adicionales ---------- */
+.add{display:flex;gap:13px;align-items:center;width:100%;text-align:left;background:var(--blanco);border:1px solid var(--linea);border-radius:var(--r);padding:14px 15px;box-shadow:var(--sombra-sm)}
+.add+.add{margin-top:9px}
+.add.sel{border-color:var(--marron);background:linear-gradient(180deg,#fff,#FBF7F1)}
+.caja{width:19px;height:19px;border-radius:5px;border:1px solid var(--linea-fuerte);flex:0 0 auto;display:flex;align-items:center;justify-content:center;background:#fff}
+.add.sel .caja{background:var(--marron);border-color:var(--marron)}
+.add .caja svg{display:none;width:11px;height:11px;stroke:#fff;stroke-width:2.6;fill:none}
+.add.sel .caja svg{display:block}
+.add .nom{font-size:14px}
+.add .meta{font-size:11.5px;color:var(--tenue);margin-top:2px}
+.cont{display:flex;align-items:center;gap:0;margin-left:auto;border:1px solid var(--linea);border-radius:22px;overflow:hidden;background:#fff}
+.cont button{width:32px;height:30px;border:0;background:transparent;font-size:15px;color:var(--marron);line-height:1}
+.cont span{min-width:26px;text-align:center;font-size:13px}
+
+/* ---------- calendario ---------- */
+.cal-enc{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-enc h3{font-size:20px;font-weight:400}
+.flecha{width:34px;height:34px;border-radius:50%;border:1px solid var(--linea);background:#fff;display:flex;align-items:center;justify-content:center;color:var(--marron)}
+.flecha[disabled]{opacity:.3}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dow{text-align:center;font-size:9.5px;letter-spacing:.12em;color:var(--tenue);padding-bottom:6px;text-transform:uppercase}
+.dia{aspect-ratio:1;border:1px solid transparent;border-radius:50%;background:#fff;box-shadow:var(--sombra-sm);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;gap:3px;padding:0;color:var(--texto)}
+.dia i{width:3px;height:3px;border-radius:50%;background:var(--marron-claro);display:block}
+.dia[disabled]{background:transparent;box-shadow:none;color:rgba(61,54,48,.24)}
+.dia.sel{background:var(--marron);color:#fff;box-shadow:0 4px 14px rgba(140,114,89,.35)}
+.dia.sel i{background:rgba(255,255,255,.8)}
+.dia.hoy:not(.sel){border-color:var(--linea-fuerte)}
+
+/* ---------- horas ---------- */
+.horas{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.hora{padding:13px 4px;border:1px solid var(--linea);border-radius:var(--r-sm);background:#fff;font-size:14.5px;letter-spacing:.03em;box-shadow:var(--sombra-sm)}
+.hora.sel{background:var(--marron);color:#fff;border-color:var(--marron)}
+
+/* ---------- campos ---------- */
+.campo{margin-bottom:14px}
+.campo label{display:block;font-size:9.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--tenue);margin-bottom:6px}
+.inp{width:100%;padding:13px 14px;border:1px solid var(--linea);border-radius:var(--r-sm);background:#fff;font-size:15px;outline:none;transition:border-color .18s}
+.inp:focus{border-color:var(--marron-claro)}
+.inp.mal{border-color:var(--alerta);background:#FDF7F4}
+select.inp{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%238C7259'><path d='M1 1l4 4 4-4'/></svg>");background-repeat:no-repeat;background-position:right 14px center}
+.dos{display:flex;gap:9px}
+.dos .pais{flex:0 0 116px}
+.err{font-size:11.5px;color:var(--alerta);margin-top:5px}
+
+/* ---------- botones ---------- */
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:15px;border:0;border-radius:40px;background:var(--marron);color:#fff;font-size:14px;letter-spacing:.09em;text-transform:uppercase;box-shadow:0 4px 16px rgba(140,114,89,.28);transition:transform .12s,opacity .2s}
+.btn:active{transform:scale(.985)}
+.btn[disabled]{background:var(--taupe);box-shadow:none;opacity:.55}
+.btn.sec{background:#fff;color:var(--marron);border:1px solid var(--linea-fuerte);box-shadow:none}
+.btn.min{padding:11px 16px;width:auto;font-size:11px;letter-spacing:.11em}
+.btn.wa{background:var(--ok);box-shadow:0 4px 16px rgba(111,132,103,.3)}
+.txt-btn{background:transparent;border:0;color:var(--tenue);font-size:12px;letter-spacing:.06em;padding:10px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--linea-fuerte)}
+
+/* ---------- barra inferior ---------- */
+.barra{position:fixed;bottom:0;left:0;right:0;z-index:45;background:linear-gradient(180deg,rgba(245,241,234,.72),rgba(245,241,234,.98) 40%);backdrop-filter:blur(12px);border-top:1px solid var(--linea);padding:12px 22px calc(14px + env(safe-area-inset-bottom))}
+.barra .in{max-width:440px;margin:0 auto}
+.barra{transition:transform .3s ease,opacity .3s ease}
+.barra.oculta{transform:translateY(105%);opacity:0;pointer-events:none}
+
+.resumen-min{display:flex;align-items:baseline;gap:9px;margin-bottom:10px;font-size:12px;color:var(--tenue)}
+.resumen-min b{font-family:var(--serif);font-size:20px;font-weight:500;color:var(--texto);letter-spacing:.01em}
+.resumen-min .atras{margin-left:auto}
+
+/* ---------- resumen / depósito ---------- */
+.lin{display:flex;gap:12px;font-size:13.5px;padding:5px 0}
+.lin .v{margin-left:auto;white-space:nowrap;letter-spacing:.02em}
+.lin.sub{font-size:12px;color:var(--tenue)}
+.lin.tot{font-size:15px;padding-top:11px;margin-top:6px;border-top:1px solid var(--linea)}
+.lin.tot .v{font-family:var(--serif);font-size:22px;font-weight:500}
+
+.dep{background:linear-gradient(165deg,#fff 0%,#FAF6F0 55%,#F1E9DD 100%);border:1px solid var(--linea-fuerte);border-radius:var(--r);padding:20px 18px;text-align:center;box-shadow:var(--sombra);position:relative;overflow:hidden}
+.dep .et{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--marron-claro)}
+.dep .monto{font-family:var(--serif);font-size:44px;line-height:1.1;margin:6px 0 2px;letter-spacing:.01em}
+.dep .det{font-size:12px;color:var(--tenue)}
+.sinpe{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--linea);border-radius:var(--r-sm);padding:12px 14px;margin-top:14px;text-align:left}
+.sinpe .k{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--tenue)}
+.sinpe .n{font-family:var(--serif);font-size:22px;letter-spacing:.05em;line-height:1.2}
+.copiar{margin-left:auto;border:1px solid var(--linea-fuerte);background:#fff;color:var(--marron);border-radius:30px;padding:9px 14px;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:7px;white-space:nowrap}
+
+.reloj{display:flex;align-items:center;gap:13px;background:rgba(169,112,79,.09);border:1px solid rgba(169,112,79,.26);border-radius:var(--r-sm);padding:14px 15px}
+.reloj .t{font-family:var(--serif);font-size:33px;letter-spacing:.03em;line-height:1;font-variant-numeric:tabular-nums;color:var(--alerta)}
+.reloj .d{font-size:12.5px;line-height:1.5;color:var(--texto);margin-top:3px}
+.reloj .d b{font-weight:400;color:var(--alerta)}
+.reloj svg{width:18px;height:18px;stroke:var(--alerta);fill:none;stroke-width:1.3;flex:0 0 auto}
+
+.adjunto{display:flex;align-items:center;gap:12px;border:1px dashed var(--linea-fuerte);border-radius:var(--r-sm);padding:13px 14px;background:#fff;width:100%;text-align:left;font-size:13px;color:var(--marron)}
+.adjunto svg{width:17px;height:17px;stroke:var(--marron);fill:none;stroke-width:1.4}
+.adjunto img{width:42px;height:42px;object-fit:cover;border-radius:8px}
+
+/* ---------- confirmación ---------- */
+.ok-sello{width:62px;height:62px;border-radius:50%;border:1px solid var(--linea-fuerte);background:#fff;display:flex;align-items:center;justify-content:center;margin:6px auto 16px;box-shadow:var(--sombra-sm)}
+.ok-sello svg{width:24px;height:24px;stroke:var(--marron);fill:none;stroke-width:1.2}
+
+/* ---------- estados ---------- */
+.est{font-size:9px;letter-spacing:.14em;text-transform:uppercase;padding:3.5px 9px;border-radius:20px;white-space:nowrap;border:1px solid transparent}
+.est.apartada{background:rgba(169,112,79,.12);color:var(--alerta);border-color:rgba(169,112,79,.24)}
+.est.pendiente{background:rgba(168,139,109,.14);color:var(--marron);border-color:rgba(140,114,89,.24)}
+.est.aprobada{background:rgba(111,132,103,.13);color:var(--ok);border-color:rgba(111,132,103,.26)}
+.est.completada{background:rgba(61,54,48,.07);color:var(--tenue);border-color:rgba(61,54,48,.14)}
+.est.rechazada,.est.cancelada,.est.expirada{background:transparent;color:#8B8378;border-color:var(--linea)}
+
+/* ---------- panel ---------- */
+.tabs{display:flex;gap:2px;padding:0 12px;overflow-x:auto;border-bottom:1px solid var(--linea);position:sticky;top:76px;background:rgba(245,241,234,.96);backdrop-filter:blur(10px);z-index:35}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:transparent;padding:14px 7px 12px;font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--tenue);border-bottom:1.5px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tab.on{color:var(--marron);border-bottom-color:var(--marron)}
+.tab .bola{background:var(--alerta);color:#fff;font-size:9px;min-width:16px;height:16px;border-radius:9px;display:flex;align-items:center;justify-content:center;letter-spacing:0;padding:0 4px}
+
+.cita{background:#fff;border:1px solid var(--linea);border-radius:var(--r);padding:15px 16px;box-shadow:var(--sombra-sm);margin-bottom:10px}
+.cita.urg{border-color:rgba(169,112,79,.4);box-shadow:0 2px 4px rgba(169,112,79,.05),0 10px 26px rgba(169,112,79,.12)}
+.cita-enc{display:flex;align-items:flex-start;gap:10px}
+.cita-enc .h{font-family:var(--serif);font-size:23px;line-height:1;letter-spacing:.02em;min-width:66px}
+.cita-enc .nm{font-size:14.5px;line-height:1.3}
+.cita-enc .sub{font-size:11.5px;color:var(--tenue);margin-top:3px}
+.cita-enc .lado{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.cita .cuerpo-cita{margin-top:12px;padding-top:12px;border-top:1px solid var(--linea)}
+.acc{display:flex;gap:7px;margin-top:13px;flex-wrap:wrap}
+.acc .btn{flex:1;min-width:110px}
+.mini{border:1px solid var(--linea-fuerte);background:#fff;color:var(--marron);border-radius:30px;padding:9px 14px;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px}
+.mini.g{background:var(--ok);color:#fff;border-color:var(--ok)}
+.mini.w{border-color:rgba(111,132,103,.45);color:var(--ok)}
+.mini.w svg{width:13px;height:13px}
+.mini.r{color:#A79E92;border-color:var(--linea);background:transparent;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--linea-fuerte)}
+.thumb{width:100%;max-height:150px;object-fit:cover;border-radius:var(--r-sm);border:1px solid var(--linea);margin-top:10px;display:block}
+
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:#fff;border:1px solid var(--linea);border-radius:var(--r-sm);padding:13px 12px;box-shadow:var(--sombra-sm)}
+.kpi .k{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--tenue)}
+.kpi .v{font-family:var(--serif);font-size:21px;margin-top:4px;letter-spacing:.01em}
+.kpi .s{font-size:10.5px;color:var(--tenue)}
+.destacado{background:linear-gradient(160deg,#fff,#F6F1E9 60%,#EDE4D7);border:1px solid var(--linea-fuerte);border-radius:var(--r);padding:20px 18px;text-align:center;box-shadow:var(--sombra)}
+.destacado .v{font-family:var(--serif);font-size:52px;line-height:1;margin:4px 0 6px}
+
+.fab{position:fixed;z-index:46;right:calc(50% - 220px + 18px);bottom:calc(24px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:9px;background:var(--marron);color:#fff;border:0;border-radius:40px;padding:14px 20px;font-size:11.5px;letter-spacing:.11em;text-transform:uppercase;box-shadow:0 6px 22px rgba(140,114,89,.4)}
+@media(max-width:800px){.fab{right:18px}}
+.fab svg{width:14px;height:14px;stroke:#fff;stroke-width:1.6;fill:none}
+
+/* ---------- modal ---------- */
+.velo{position:fixed;inset:0;z-index:60;background:rgba(61,54,48,.42);backdrop-filter:blur(3px);display:flex;align-items:flex-end;justify-content:center;padding:0}
+.hoja-modal{background:var(--crema);width:100%;max-width:440px;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:22px 22px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(61,54,48,.2)}
+.hoja-modal h3{font-size:22px;font-weight:400;margin-bottom:4px}
+.hoja-modal .cerrar{position:absolute;top:0;right:0}
+.modal-enc{display:flex;align-items:flex-start;margin-bottom:16px}
+.modal-enc .x{margin-left:auto;border:0;background:transparent;color:var(--tenue);font-size:22px;line-height:1;padding:0 2px}
+.chips{display:flex;gap:7px;flex-wrap:wrap}
+.chip{border:1px solid var(--linea);background:#fff;border-radius:30px;padding:9px 13px;font-size:12.5px;color:var(--texto)}
+.chip.on{background:var(--marron);color:#fff;border-color:var(--marron)}
+
+/* ---------- inicio: navegación y secciones ---------- */
+.nav{position:sticky;top:76px;z-index:36;display:flex;gap:2px;padding:0 12px;overflow-x:auto;background:rgba(245,241,234,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--linea)}
+.nav::-webkit-scrollbar{display:none}
+.nav button{border:0;background:transparent;padding:13px 9px 11px;font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--tenue);white-space:nowrap;border-bottom:1.5px solid transparent}
+.nav button.on{color:var(--marron);border-bottom-color:var(--marron)}
+
+.portada{position:relative;padding:34px 22px 30px;text-align:center;overflow:hidden}
+.portada .sello{width:118px;height:118px;border-radius:50%;object-fit:cover;box-shadow:0 6px 26px rgba(61,54,48,.16);margin-bottom:20px;background:var(--taupe)}
+.portada h1{font-family:var(--serif);font-size:52px;letter-spacing:.13em;line-height:1;font-weight:300;margin-left:.13em}
+.portada .sub{font-size:9.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--tenue);margin-top:10px}
+.portada .lema{font-family:var(--serif);font-size:21px;font-style:italic;color:var(--marron);margin-top:20px;line-height:1.4}
+.portada .quien{font-size:13px;color:var(--tenue);margin-top:10px;line-height:1.7}
+
+.sec{padding:40px 22px 0;scroll-margin-top:120px}
+.sec-tit{text-align:center;margin-bottom:20px}
+.sec-tit .k{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--marron-claro)}
+.sec-tit h2{font-size:28px;font-weight:300;margin-top:7px;line-height:1.2}
+.sec-tit p{font-size:13px;color:var(--tenue);margin:9px auto 0;max-width:300px;line-height:1.65}
+.orn{display:flex;align-items:center;justify-content:center;gap:11px;padding:36px 22px 0}
+.orn i{height:1px;width:48px;background:var(--linea-fuerte);display:block}
+.orn b{width:4px;height:4px;border-radius:50%;background:var(--taupe);display:block}
+
+.galeria{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.galeria button{padding:0;border:0;background:transparent;border-radius:14px;overflow:hidden;display:block}
+.galeria img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;box-shadow:var(--sombra-sm);display:block}
+
+.acor{background:#fff;border:1px solid var(--linea);border-radius:var(--r);box-shadow:var(--sombra-sm);overflow:hidden}
+.acor+.acor{margin-top:9px}
+.acor .cab{display:flex;align-items:center;gap:12px;width:100%;background:transparent;border:0;padding:15px 16px;text-align:left}
+.acor .cab h3{font-family:var(--serif);font-size:19px;font-weight:400;flex:1;line-height:1.25}
+.acor .mas{width:22px;height:22px;border-radius:50%;border:1px solid var(--linea);position:relative;flex:0 0 auto}
+.acor .mas::before,.acor .mas::after{content:'';position:absolute;background:var(--marron);left:50%;top:50%;transform:translate(-50%,-50%)}
+.acor .mas::before{width:9px;height:1px}
+.acor .mas::after{width:1px;height:9px;transition:opacity .2s}
+.acor.abierto .mas::after{opacity:0}
+.acor .txt{padding:0 16px 16px;font-size:13.5px;color:var(--tenue);line-height:1.7}
+.acor .txt b{color:var(--texto);font-weight:400}
+.acor .txt p{margin:0 0 10px}
+.acor .txt p:last-child{margin-bottom:0}
+
+.reco{background:#fff;border:1px solid var(--linea);border-radius:var(--r);box-shadow:var(--sombra-sm);padding:2px 16px;margin:0;list-style:none}
+.reco li{padding:14px 0 14px 21px;border-bottom:1px solid var(--linea);font-size:13.5px;line-height:1.65;position:relative}
+.reco li:last-child{border-bottom:0}
+.reco li b{font-weight:400;color:var(--marron)}
+.reco li::before{content:'';position:absolute;left:2px;top:21px;width:4px;height:4px;border-radius:50%;background:var(--marron-claro)}
+
+.dobles{display:flex;gap:8px}
+.dobles .btn{flex:1;font-size:11px;letter-spacing:.07em;padding:14px 6px;gap:7px}
+.btn.ig{background:#fff;color:var(--marron);border:1px solid var(--linea-fuerte);box-shadow:none}
+.btn svg{flex:0 0 auto}
+
+.precio-lin{display:flex;gap:12px;align-items:baseline;padding:11px 0;border-bottom:1px solid var(--linea)}
+.precio-lin:last-child{border-bottom:0}
+.precio-lin .n{font-size:13.5px;line-height:1.35}
+.precio-lin .d{font-size:11px;color:var(--tenue);margin-top:2px}
+.precio-lin .p{margin-left:auto;white-space:nowrap;font-size:14px;letter-spacing:.02em}
+
+.mapa{background:linear-gradient(160deg,#fff,#F7F2EB 60%,#EDE5D9);border:1px solid var(--linea);border-radius:var(--r);padding:20px 18px;text-align:center;box-shadow:var(--sombra-sm)}
+.mapa .d{font-family:var(--serif);font-size:22px;line-height:1.3}
+.mapa .n{font-size:12.5px;color:var(--tenue);margin-top:8px;line-height:1.65}
+
+.volver{border:1px solid var(--linea);background:#fff;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--marron);margin-left:auto;flex:0 0 auto}
+
+/* ---------- pie ---------- */
+.pie{text-align:center;padding:26px 22px 34px;font-size:11px;color:var(--tenue);letter-spacing:.04em;line-height:1.9}
+.pie .adm{background:transparent;border:0;color:#A79E92;font-size:10px;letter-spacing:.18em;text-transform:uppercase;padding:6px 10px}
+.aviso-flotante{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:70;background:var(--texto);color:var(--crema);font-size:12px;letter-spacing:.04em;padding:11px 18px;border-radius:30px;box-shadow:0 8px 24px rgba(61,54,48,.3);opacity:0;transition:opacity .25s,bottom .25s;pointer-events:none}
+.aviso-flotante.ver{opacity:1;bottom:110px}
+.vacio{text-align:center;padding:34px 20px;color:var(--tenue);font-size:13px;line-height:1.7}
+.vacio .ic{width:40px;height:40px;margin:0 auto 12px;border-radius:50%;border:1px solid var(--linea);display:flex;align-items:center;justify-content:center}
+.vacio .ic svg{width:17px;height:17px;stroke:var(--taupe);fill:none;stroke-width:1.2}
+.grande{font-family:var(--serif);font-size:19px}
+.tabla-cfg{width:100%;border-collapse:collapse}
+.tabla-cfg td{padding:5px 4px;vertical-align:middle}
+.tabla-cfg .inp{padding:9px 10px;font-size:13.5px}
+.w-precio{width:88px}
+.w-min{width:66px}
+.fila-h{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.fila-h .inp{padding:9px 10px;font-size:13.5px;width:92px}
+.fila-h .quitar{border:0;background:transparent;color:#A79E92;font-size:17px;padding:4px 6px;line-height:1}
+.dia-cfg{border-bottom:1px solid var(--linea);padding:13px 0}
+.dia-cfg:last-child{border-bottom:0}
+.dia-cfg .nom{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--marron);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="capa-modal"></div>
+<div class="aviso-flotante" id="aviso"></div>
+
+<script>
+/* ============================================================
+   1. Utilidades de fecha, hora y dinero  (zona America/Costa_Rica)
+   ============================================================ */
+const TZ = 'America/Costa_Rica';
+
+function partesCR(d){
+  try{
+    const f = new Intl.DateTimeFormat('en-CA',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+    const p = {}; for(const x of f.formatToParts(d||new Date())) p[x.type]=x.value;
+    const h = p.hour === '24' ? '00' : p.hour;
+    return { ymd:p.year+'-'+p.month+'-'+p.day, min:(+h)*60 + (+p.minute) };
+  }catch(e){ // respaldo si el navegador no soporta la zona
+    const x = d||new Date();
+    return { ymd:aYMD(x), min:x.getHours()*60 + x.getMinutes() };
+  }
+}
+const hoyCR = () => partesCR().ymd;
+const minCR  = () => partesCR().min;
+
+function aYMD(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function deYMD(s){ return new Date(s+'T12:00:00Z'); }
+function sumarDias(s,n){ const d=deYMD(s); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+function diaSemana(s){ return deYMD(s).getUTCDay(); }            // 0 = domingo
+function inicioSemana(s){ const d=deYMD(s); const w=(d.getUTCDay()+6)%7; d.setUTCDate(d.getUTCDate()-w); return d.toISOString().slice(0,10); }
+
+const DIAS   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_C = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+const MESES  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','setiembre','octubre','noviembre','diciembre'];
+
+function aMin(hhmm){ const [h,m]=hhmm.split(':').map(Number); return h*60+m; }
+function aHora(min){ const h=Math.floor(min/60), m=min%60; return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0'); }
+function hora12(min){
+  const h=Math.floor(min/60), m=min%60;
+  const ap = h<12 ? 'a.m.' : 'p.m.';
+  let hh = h%12; if(hh===0) hh=12;
+  return hh+':'+String(m).padStart(2,'0')+' '+ap;
+}
+function dur(min){
+  const h=Math.floor(min/60), m=min%60;
+  if(h===0) return m+' min';
+  if(m===0) return h+' h';
+  return h+' h '+m+' min';
+}
+function col(n){ return '₡'+Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.'); }
+function fechaLarga(s){ const d=deYMD(s); return DIAS[d.getUTCDay()]+' '+d.getUTCDate()+' de '+MESES[d.getUTCMonth()]; }
+function capital(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function fechaCorta(s){ const d=deYMD(s); return DIAS_C[d.getUTCDay()]+' '+d.getUTCDate()+' '+MESES[d.getUTCMonth()].slice(0,3); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ============================================================
+   2. Datos base
+   Precios reales de su lista publicada.
+   Las duraciones con  todo:true  son estimaciones: ella las corrige
+   desde Configuración (aparecen marcadas como "estimado").
+   ============================================================ */
+function datosIniciales(){
+  return {
+    servicios:[
+      {id:'s1', nombre:'Esmaltado semipermanente liso',                 precio:10000, min:60},
+      {id:'s2', nombre:'Esmaltado semipermanente + diseño básico',      precio:12000, min:75,  todo:true}, // TODO duración estimada
+      {id:'s3', nombre:'Técnica balance',                               precio:13500, min:60},
+      {id:'s4', nombre:'Técnica balance + semipermanente liso',          precio:15500, min:120},
+      {id:'s5', nombre:'Técnica balance + semiperm. con diseño básico',  precio:17000, min:135, todo:true}, // TODO duración estimada
+      {id:'s6', nombre:'Gel-X + semipermanente liso',                    precio:16500, min:120},
+      {id:'s7', nombre:'Gel-X + semipermanente con diseño básico',       precio:18500, min:135, todo:true}, // TODO duración estimada
+      {id:'s8', nombre:'Pedicure + semipermanente',                      precio:15000, min:60}
+    ],
+    adicionales:[
+      {id:'a1', nombre:'Retiro de semipermanente',      precio:2500, min:15, todo:true}, // TODO duración estimada
+      {id:'a2', nombre:'Retiro de Gel-X o rubber',      precio:4000, min:20, todo:true}, // TODO duración estimada
+      {id:'a3', nombre:'Retiro de acrílico',            precio:6000, min:30, todo:true}, // TODO duración estimada
+      {id:'a4', nombre:'Reconstrucción de uña',         precio:1000, min:5,  todo:true, porUnidad:true} // TODO duración estimada
+    ],
+    // TODO horarios provisionales: confirmar con Ariana
+    horarios:{
+      0:[],
+      1:[{ini:'09:00',fin:'18:00'}],
+      2:[{ini:'09:00',fin:'18:00'}],
+      3:[{ini:'09:00',fin:'18:00'}],
+      4:[{ini:'09:00',fin:'18:00'}],
+      5:[{ini:'09:00',fin:'18:00'}],
+      6:[{ini:'09:00',fin:'15:00'}]
+    },
+    fechasBloqueadas:[],
+    config:{
+      depositoPorServicio:7000,
+      horasApartado:2,
+      anticipacionMinima:240,   // minutos: nadie reserva para dentro de menos de 4 h
+      diasAdelante:60,          // hasta cuándo se puede reservar
+      maxApartados:2,           // apartados sin confirmar por persona
+      pasoSlot:30,
+      sinpe:'8737-8504',
+      whatsapp:'50687378504',
+      titular:'Ariana Guerrero',
+      direccion:'Río Oro, Santa Ana',
+      pin:'1234'
+    },
+    citas:[]
+  };
+}
+
+/* ------------------------------------------------------------
+   Mensajes que salen por WhatsApp hacia la clienta.
+   TODO textos: Ariana los puede reescribir con su propio tono.
+   Marcadores disponibles:
+     {nombre} {dia} {hora} {servicios} {duracion}
+     {total} {deposito} {resta} {sinpe}
+   ------------------------------------------------------------ */
+const MENSAJES_WA = {
+  apartada:
+    'Hola {nombre}, le escribo de NÄS Beauty Studio. Tengo apartado su espacio del {dia} a las {hora} para {servicios}. '+
+    'Me falta el depósito de {deposito} por SINPE al {sinpe} para dejarlo confirmado. '+
+    'Si no alcanza a hacerlo antes de que venza el apartado, el horario vuelve a quedar libre. ¡Gracias!',
+  pendiente:
+    'Hola {nombre}, le escribo de NÄS Beauty Studio. Ya recibí su comprobante del depósito para la cita del {dia} a las {hora}, '+
+    'lo estoy revisando y le confirmo en un ratito.',
+  aprobada:
+    'Hola {nombre}, su cita quedó confirmada para el {dia} a las {hora}, para {servicios} ({duracion}). '+
+    'El día de la cita se cancelan {resta}, porque el depósito de {deposito} ya está descontado. '+
+    'La espero en Río Oro, Santa Ana. Hay estacionamiento gratis para clientas.',
+  otro:
+    'Hola {nombre}, le escribo de NÄS Beauty Studio por su cita del {dia} a las {hora}.'
+};
+
+const LLAVE = 'nas_agenda_demo_v1';
+let S = null;
+
+function guardar(){
+  try{
+    localStorage.setItem(LLAVE, JSON.stringify(S));
+  }catch(e){
+    console.warn('No se pudo guardar:', e.message);
+    aviso('No se pudo guardar: el almacenamiento está lleno');
+  }
+}
+function cargar(){
+  try{
+    const t = localStorage.getItem(LLAVE);
+    if(!t) return null;
+    const d = JSON.parse(t);
+    if(!d || !d.servicios || !d.config) return null;
+    return d;
+  }catch(e){ return null; }
+}
+function reiniciar(){
+  S = datosIniciales();
+  sembrar();
+  guardar();
+}
+
+const servicio  = id => S.servicios.find(s=>s.id===id);
+const adicional = id => S.adicionales.find(a=>a.id===id);
+
+/* ============================================================
+   3. Reglas de agenda
+   - Trabaja sola: nunca dos citas traslapadas.
+   - Un servicio tiene que caber entero dentro de un bloque
+     (por eso nada atraviesa la pausa de almuerzo).
+   ============================================================ */
+const BLOQUEAN = ['pendiente','aprobada','completada'];
+
+function bloquea(c){
+  if(c.estado === 'apartada') return c.apartadoHasta > Date.now();
+  return BLOQUEAN.includes(c.estado);
+}
+function activa(c){ return bloquea(c); }
+
+function liberarExpiradas(){
+  let cambio = false;
+  for(const c of S.citas){
+    if(c.estado === 'apartada' && c.apartadoHasta <= Date.now()){
+      c.estado = 'expirada';
+      cambio = true;
+    }
+  }
+  if(cambio) guardar();
+  return cambio;
+}
+
+/* El apartado vence 15 min antes de la cita y nunca dura menos de 30 min útiles */
+const COLCHON_CITA  = 15;
+const APARTADO_MIN  = 30;
+
+/* Minutos que faltan para el inicio de una cita */
+function minutosHasta(fecha, inicioMin){
+  const ahora = partesCR();
+  const dias  = Math.round((deYMD(fecha) - deYMD(ahora.ymd)) / 86400000);
+  return dias*1440 + inicioMin - ahora.min;
+}
+
+/* Cuándo vence el apartado de una cita: lo que pase primero entre
+   las horas de apartado y 15 minutos antes de la cita. */
+function finApartado(fecha, inicioMin){
+  const tope = Date.now() + Math.max(0, minutosHasta(fecha, inicioMin) - COLCHON_CITA)*60000;
+  return Math.min(Date.now() + S.config.horasApartado*3600*1000, tope);
+}
+
+/* Índice fecha -> tramos ocupados, para no recorrer todas las citas por día */
+function indiceOcupado(excluir){
+  const idx = {};
+  for(const c of S.citas){
+    if(c.id === excluir || !bloquea(c)) continue;
+    (idx[c.fecha] = idx[c.fecha] || []).push([aMin(c.hora), aMin(c.hora) + c.duracion]);
+  }
+  return idx;
+}
+
+/* Espacios disponibles de un día para una duración dada.
+   opc.incluirPasadas : sin filtro de tiempo (cita manual del panel)
+   opc.admin          : sin anticipación mínima, pero nada en el pasado (mover cita)
+   opc.indice         : índice de ocupación ya calculado
+   Al público se le exige la anticipación mínima configurada y que el
+   apartado alcance a durar algo: por eso el piso de 45 minutos. */
+function espacios(fecha, duracion, opc){
+  opc = opc || {};
+  if(!duracion || duracion <= 0) return [];
+  if(S.fechasBloqueadas.includes(fecha)) return [];
+  const bloques = S.horarios[diaSemana(fecha)] || [];
+  const ocupado = opc.indice
+    ? (opc.indice[fecha] || [])
+    : S.citas.filter(c => c.fecha === fecha && c.id !== opc.excluir && bloquea(c))
+             .map(c => [aMin(c.hora), aMin(c.hora) + c.duracion]);
+  const paso = S.config.pasoSlot || 30;
+
+  let antic = null;                                   // minutos mínimos de anticipación
+  if(!opc.incluirPasadas){
+    antic = opc.admin ? 0
+          : Math.max(S.config.anticipacionMinima || 0, COLCHON_CITA + APARTADO_MIN);
+  }
+  const esPublico = antic !== null && !opc.admin;
+  // el público solo ve hasta donde llega la agenda abierta
+  if(esPublico && fecha > sumarDias(hoyCR(), S.config.diasAdelante || 60)) return [];
+  const ahora = partesCR();
+  const dias  = Math.round((deYMD(fecha) - deYMD(ahora.ymd)) / 86400000);
+
+  const out = [];
+  for(const b of bloques){
+    const bi = aMin(b.ini), bf = aMin(b.fin);
+    for(let t = bi; t + duracion <= bf; t += paso){
+      if(antic !== null && (dias*1440 + t - ahora.min) < antic) continue;
+      if(ocupado.some(([s,e]) => t < e && t + duracion > s)) continue;
+      out.push(t);
+    }
+  }
+  return out.sort((a,b)=>a-b);
+}
+function chocaCon(fecha, inicio, duracion, excluir){
+  return S.citas.some(c => c.fecha===fecha && c.id!==excluir && bloquea(c) &&
+    inicio < aMin(c.hora)+c.duracion && inicio+duracion > aMin(c.hora));
+}
+
+/* ============================================================
+   4. Estado de la vista
+   ============================================================ */
+let V = {
+  pantalla:'inicio',   // inicio · reserva · admin
+  acor:{},             // políticas abiertas
+  paso:1,
+  sel:[],            // ids de servicios principales (máx. 2)
+  adic:{},           // id -> cantidad
+  fecha:null,
+  hora:null,
+  mes:null,          // {y,m} del calendario
+  cliente:{nombre:'',pais:'CR',tel:'',email:''},
+  errores:{},
+  citaId:null,       // cita apartada en curso
+  comprobante:'',
+  captura:null,
+  admin:{ tab:'solicitudes', fecha:null, pinOk:false }
+};
+
+const PAISES = [
+  {c:'CR', n:'Costa Rica', d:'+506', len:8},
+  {c:'NI', n:'Nicaragua',  d:'+505', len:8},
+  {c:'PA', n:'Panamá',     d:'+507', len:8},
+  {c:'MX', n:'México',     d:'+52',  len:10},
+  {c:'US', n:'Estados Unidos', d:'+1', len:10},
+  {c:'ES', n:'España',     d:'+34',  len:9},
+  {c:'CO', n:'Colombia',   d:'+57',  len:10}
+];
+const pais = c => PAISES.find(p=>p.c===c) || PAISES[0];
+
+/* Cálculos del carrito */
+function totalSel(){
+  let precio = 0, minutos = 0;
+  for(const id of V.sel){ const s = servicio(id); if(s){ precio += s.precio; minutos += s.min; } }
+  for(const id in V.adic){
+    const a = adicional(id), q = V.adic[id];
+    if(a && q > 0){ precio += a.precio * q; minutos += a.min * q; }
+  }
+  return { precio, minutos, deposito: V.sel.length * S.config.depositoPorServicio };
+}
+
+/* ============================================================
+   5. Piezas visuales reutilizables
+   ============================================================ */
+const ICO = {
+  check:'<svg viewBox="0 0 12 12"><path d="M1.5 6.5l3 3 6-7"/></svg>',
+  reloj:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l3.5 2"/></svg>',
+  copiar:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5H6a2 2 0 00-2 2v9"/></svg>',
+  clip:'<svg viewBox="0 0 24 24"><path d="M20 11l-8.5 8.5a4.5 4.5 0 01-6.4-6.4L13 4.8a3 3 0 014.3 4.2l-8 8a1.5 1.5 0 01-2.2-2.1l7.4-7.4"/></svg>',
+  wa:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 11.8a8 8 0 01-11.9 7L4 20l1.3-3.9A8 8 0 1120 11.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/></svg>',
+  ig:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>',
+  sello:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10.2"/><path d="M7.5 12.3l3.2 3.2 5.8-6.5"/></svg>',
+  mas:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  hoja:'<svg viewBox="0 0 24 24"><path d="M20 4C10 5 5 9.5 5 15.5c0 2 .6 3.5 1.5 4.5C8 17 11 13.5 17 11"/><path d="M6.5 20C4 20 3 18 3 18"/></svg>',
+  flechaI:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M14.5 5l-7 7 7 7"/></svg>',
+  flechaD:'<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M9.5 5l7 7-7 7"/></svg>'
+};
+
+/* Rama de líneas finas, como el trazo de sus historias */
+function rama(clase){
+  return '<svg class="rama '+clase+'" viewBox="0 0 120 200" fill="none" stroke="currentColor" stroke-width=".9" stroke-linecap="round">'+
+    '<path d="M60 200C60 150 52 100 30 55 20 34 12 18 8 6"/>'+
+    '<path d="M52 150c-14-3-24-13-27-27 15 0 27 8 31 21"/>'+
+    '<path d="M56 168c12-6 19-18 18-32-13 4-22 15-22 28"/>'+
+    '<path d="M44 118c-13-4-21-15-22-29 14 1 25 11 27 24"/>'+
+    '<path d="M48 132c12-7 17-19 15-33-12 5-20 17-19 30"/>'+
+    '<path d="M33 82c-12-5-18-17-18-30 13 2 23 13 24 26"/>'+
+    '<path d="M37 96c11-8 15-21 12-34-11 6-18 18-16 31"/>'+
+    '<path d="M20 46c-10-6-14-17-13-29 12 3 20 14 20 27"/>'+
+  '</svg>';
+}
+
+/* ============================================================
+   6. Pantalla de inicio: trabajos, servicios, políticas,
+      recomendaciones y contacto. La reserva vive aparte.
+   ============================================================ */
+
+// TODO galería: para agregar más trabajos, dejá la foto dentro de la carpeta
+// "galeria" y agregá el nombre del archivo a esta lista.
+const GALERIA = [
+  {img:'galeria/trabajo-3.jpg', alt:'Semipermanente celeste en degradado con hoja de oro'},
+  {img:'galeria/trabajo-2.jpg', alt:'Degradado rosado con línea dorada en la cutícula'},
+  {img:'galeria/trabajo-1.jpg', alt:'Uñas almendradas en degradado rosa y lila'},
+  {img:'galeria/trabajo-4.jpg', alt:'Semipermanente vino en uña corta cuadrada'}
+];
+
+const SECCIONES = [
+  {id:'trabajos', n:'Trabajos'},
+  {id:'servicios', n:'Servicios'},
+  {id:'politicas', n:'Políticas'},
+  {id:'recomendaciones', n:'Recomendaciones'},
+  {id:'contacto', n:'Visitanos'}
+];
+
+/* Sus políticas, tal como las tiene publicadas. */
+const POLITICAS = [
+  {t:'Reservas', c:[
+    'Todo servicio agendado requiere un depósito no reembolsable de <b>₡7.000</b>. Sin este depósito no se agenda ninguna cita.',
+    'En caso de requerir <b>2 servicios</b> (manos y pies), el depósito es de <b>₡14.000</b>.',
+    'Este depósito se descuenta del monto total el día de la cita.'
+  ]},
+  {t:'Puntualidad', c:[
+    'Se dan <b>10 minutos</b> de tolerancia. Después de ese tiempo la cita queda cancelada y el depósito no es reembolsable.',
+    'Tomá en cuenta las presas para evitar llegadas tardías.'
+  ]},
+  {t:'Cancelaciones y cambios', c:[
+    'Para cancelar una cita debe hacerse con <b>48 horas</b> de anticipación; de no ser así, el depósito no será reembolsable.',
+    'Los cambios de cita también se piden con 48 horas y se hace <b>un solo cambio</b>. Si se requiere otro, se solicita nuevamente el depósito de reserva.',
+    'En caso de no asistir sin previo aviso, además de perder el depósito, en futuras citas se solicitará el pago anticipado del 100% del servicio.',
+    'Si reservás 2 servicios el mismo día y decidís hacerte solo 1, el otro debe cancelarse igualmente con 48 horas de anticipación.'
+  ]},
+  {t:'Formas de pago', c:[
+    'Todo servicio debe cancelarse al <b>finalizar la cita</b>. De no hacerlo, a partir del día siguiente se suma un costo de ₡750 por día.',
+    'Si el pago es en efectivo debe hacerse con el <b>monto exacto</b>: por seguridad no se mantiene dinero en efectivo en el salón.',
+    'También podés pagar con transferencia bancaria o SINPE Móvil. En el detalle del pago debe ir <b>tu nombre</b>, y siempre hay que enviar el comprobante.'
+  ]},
+  {t:'Garantía', c:[
+    'Todo servicio cuenta con una garantía de <b>3 días</b>. Si necesitás un arreglo, comunicate con toda confianza.',
+    'Las citas de garantía se agendan según disponibilidad.',
+    'La garantía <b>no aplica</b> en uñas arrancadas o quebradas por una mala manipulación.'
+  ]},
+  {t:'Salud e higiene', c:[
+    'Se solicita llegar con las <b>manos y pies limpios</b> a la cita.',
+    'No se aplicará ningún producto o material en uñas que presenten algún signo de dermatitis, hongos o cualquier condición médica.'
+  ]},
+  {t:'Retiro de producto', c:[
+    'Todo producto que no haya sido colocado en el estudio deberá ser retirado y esto tiene un <b>costo adicional</b>. El precio depende del material que tengas puesto.'
+  ]},
+  {t:'Trato respetuoso', c:[
+    'Se requiere un trato amable y gentil. En caso de comportamiento inapropiado, nos reservamos el derecho a cancelar el servicio.',
+    '<b>Evitá regatear los precios</b>: en NÄS Beauty Studio se invierte tiempo, esfuerzo y materiales de calidad para ofrecerte lo mejor.'
+  ]},
+  {t:'Condiciones de servicio', c:[
+    'Los diseños requieren tiempo y paciencia para garantizar la calidad que merecés.',
+    'No se trabaja bajo presión: un trabajo de calidad requiere dedicación.'
+  ]}
+];
+
+const RECOMENDACIONES = [
+  'En caso de <b>enfermedad</b>, avisá con tiempo para poder ajustar la cita.',
+  'Toda cita se recuerda el <b>domingo o lunes</b> antes de tu día.',
+  'Por favor <b>no asistir con acompañantes</b>: es un lugar pequeño. En caso de urgencia, avisá con anticipación.',
+  'No asistir con <b>niños menores de 10 años</b>: en el sitio hay objetos punzocortantes, cafeteras calientes y muebles que no están anclados a las paredes.',
+  'Contamos con <b>estacionamiento gratis</b> y exclusivo para nuestra clientela.',
+  'Los <b>diseños elaborados</b> deben revisarse con 48 horas de antelación.'
+];
+
+function verInicio(){
+  let h = encabezado();
+
+  h += '<div class="nav">';
+  for(const s of SECCIONES) h += '<button data-nav="'+s.id+'" onclick="irA(\''+s.id+'\')">'+s.n+'</button>';
+  h += '</div>';
+
+  /* --- portada --- */
+  h += '<div class="portada">'+rama('izq')+rama('der')+
+    '<img class="sello" src="NAS_BEAUTY_STUDIO.jpg" alt="NÄS Beauty Studio" onerror="this.style.display=\'none\'">'+
+    '<h1>NÄS</h1><div class="sub">Beauty Studio</div>'+
+    '<div class="lema">Uñas que se sienten<br>como un descanso</div>'+
+    '<div class="quien">'+esc(S.config.titular)+' · manicurista y quiropodista<br>'+esc(S.config.direccion)+', Costa Rica</div>'+
+  '</div>';
+
+  h += '<div class="cuerpo sin-barra" style="padding-top:4px">';
+  h += '<button class="btn" onclick="irReserva()">Reservar mi cita</button>';
+  h += '<div style="height:8px"></div>';
+  h += '<div class="dobles">'+
+    '<a class="btn ig" href="https://instagram.com/nas.nails" target="_blank" rel="noopener">'+ICO.ig+'@nas.nails</a>'+
+    '<a class="btn wa" href="'+enlaceWA('Hola Ariana, vengo de la página de NÄS Beauty Studio.')+'" target="_blank" rel="noopener">'+ICO.wa+'WhatsApp</a>'+
+  '</div>';
+  h += '</div>';
+
+  /* --- trabajos --- */
+  h += '<div class="orn"><i></i><b></b><i></i></div>';
+  h += '<div class="sec" id="trabajos"><div class="sec-tit"><div class="k">Referencias</div>'+
+    '<h2>Algunos trabajos</h2><p>Para que llegués con una idea de lo que querés. Tocá una foto para verla en grande.</p></div>';
+  h += '<div class="galeria">';
+  GALERIA.forEach((g,i)=>{
+    h += '<button onclick="verFoto('+i+')"><img src="'+g.img+'" alt="'+esc(g.alt)+'" loading="lazy"></button>';
+  });
+  h += '</div>';
+  h += '<div style="height:12px"></div>'+
+    '<a class="btn ig" href="https://instagram.com/nas.nails" target="_blank" rel="noopener">'+ICO.ig+'Ver más en Instagram</a>';
+  h += '</div>';
+
+  /* --- servicios --- */
+  h += '<div class="orn"><i></i><b></b><i></i></div>';
+  h += '<div class="sec" id="servicios"><div class="sec-tit"><div class="k">Lista</div>'+
+    '<h2>Servicios y precios</h2><p>Podés combinar dos servicios en una misma cita, por ejemplo manos y pies.</p></div>';
+  h += '<div class="card">';
+  for(const s of S.servicios){
+    h += '<div class="precio-lin"><div><div class="n">'+esc(s.nombre)+'</div>'+
+      '<div class="d">'+dur(s.min)+'</div></div><div class="p">'+col(s.precio)+'</div></div>';
+  }
+  h += '</div>';
+  h += '<div class="rot">Adicionales</div><div class="card">';
+  for(const a of S.adicionales){
+    h += '<div class="precio-lin"><div><div class="n">'+esc(a.nombre)+'</div>'+
+      '<div class="d">'+(a.porUnidad?'por uña · ':'')+'+'+a.min+' min</div></div><div class="p">'+col(a.precio)+'</div></div>';
+  }
+  h += '</div>';
+  h += '<div style="height:12px"></div><div class="nota-caja">Cada servicio se aparta con '+col(S.config.depositoPorServicio)+
+    ' de depósito, que se descuenta del total el día de la cita.</div>';
+  h += '<div style="height:12px"></div><button class="btn" onclick="irReserva()">Ver espacios disponibles</button>';
+  h += '</div>';
+
+  /* --- políticas --- */
+  h += '<div class="orn"><i></i><b></b><i></i></div>';
+  h += '<div class="sec" id="politicas"><div class="sec-tit"><div class="k">Antes de reservar</div>'+
+    '<h2>Políticas del estudio</h2><p>Están para que tu cita salga bien y para cuidar el tiempo de las dos.</p></div>';
+  h += '<div class="nota-caja" style="margin-bottom:14px"><b style="font-weight:400;color:var(--texto)">Aviso importante.</b> '+
+    'Los espacios disponibles son limitados. Por esa razón todas las citas deben contar con su pago por adelantado: '+
+    'sin este, no se puede agendar.</div>';
+  POLITICAS.forEach((p,i)=>{
+    const on = V.acor[i];
+    h += '<div class="acor '+(on?'abierto':'')+'"><button class="cab" onclick="acordeon('+i+')">'+
+      '<h3>'+esc(p.t)+'</h3><span class="mas"></span></button>'+
+      (on ? '<div class="txt">'+p.c.map(x=>'<p>'+x+'</p>').join('')+'</div>' : '')+
+    '</div>';
+  });
+  h += '</div>';
+
+  /* --- recomendaciones --- */
+  h += '<div class="orn"><i></i><b></b><i></i></div>';
+  h += '<div class="sec" id="recomendaciones"><div class="sec-tit"><div class="k">Para tu visita</div>'+
+    '<h2>Recomendaciones</h2><p>Cositas que ayudan a que el día de tu cita todo fluya.</p></div>';
+  h += '<ul class="reco">';
+  for(const r of RECOMENDACIONES) h += '<li>'+r+'</li>';
+  h += '</ul></div>';
+
+  /* --- contacto --- */
+  h += '<div class="orn"><i></i><b></b><i></i></div>';
+  h += '<div class="sec" id="contacto"><div class="sec-tit"><div class="k">Dónde estamos</div>'+
+    '<h2>Visitanos</h2></div>';
+  h += '<div class="mapa"><div class="d">'+esc(S.config.direccion)+'<br>Costa Rica</div>'+
+    '<div class="n">Estacionamiento gratis y exclusivo para clientas.<br>'+
+    'La dirección exacta se envía al confirmar tu cita.</div></div>';
+  h += '<div style="height:10px"></div>'+
+    '<div class="dobles">'+
+    '<a class="btn ig" href="https://instagram.com/nas.nails" target="_blank" rel="noopener">'+ICO.ig+'@nas.nails</a>'+
+    '<a class="btn wa" href="'+enlaceWA('Hola Ariana, vengo de la página de NÄS Beauty Studio.')+'" target="_blank" rel="noopener">'+ICO.wa+'WhatsApp</a>'+
+    '</div>';
+  h += '<div style="height:10px"></div>'+
+    '<div class="nota" style="text-align:center">WhatsApp '+esc(S.config.sinpe)+'</div>';
+  h += '</div>';
+
+  h += pie();
+  h += '<div style="height:86px"></div>';   // espacio para la llamada fija
+
+  /* --- llamada fija a reservar: aparece al bajar de la portada --- */
+  h += '<div class="barra oculta" id="cta-fija"><div class="in">'+
+    '<button class="btn" onclick="irReserva()">Reservar mi cita</button></div></div>';
+  return h;
+}
+
+function enlaceWA(msg){ return 'https://wa.me/'+S.config.whatsapp+'?text='+encodeURIComponent(msg); }
+
+function acordeon(i){
+  const y = window.scrollY;
+  V.acor[i] = !V.acor[i];
+  pintar();
+  window.scrollTo(0,y);
+}
+function irA(id){
+  const el = document.getElementById(id);
+  if(el) window.scrollTo({top: el.offsetTop - 118, behavior:'smooth'});
+}
+function verFoto(i){
+  const g = GALERIA[i];
+  modal('<div class="modal-enc"><div><h3>Referencia</h3><div class="nota">'+esc(g.alt)+'</div></div>'+
+    '<button class="x" onclick="cerrarModal()">×</button></div>'+
+    '<img src="'+g.img+'" alt="'+esc(g.alt)+'" style="width:100%;border-radius:14px">'+
+    '<div style="height:12px"></div><button class="btn" onclick="cerrarModal();irReserva()">Quiero algo así</button>');
+}
+function irReserva(){
+  V.pantalla = 'reserva';
+  V.paso = 1;
+  window.scrollTo(0,0);
+  pintar();
+}
+function irInicio(){
+  if(V.citaId) soltarApartado(true);
+  V.pantalla = 'inicio';
+  window.scrollTo(0,0);
+  pintar();
+}
+/* marca la sección visible en la barra de navegación */
+function marcarNav(){
+  if(V.pantalla !== 'inicio') return;
+  const y = window.scrollY + 150;
+  let act = SECCIONES[0].id;
+  for(const s of SECCIONES){
+    const el = document.getElementById(s.id);
+    if(el && el.offsetTop <= y) act = s.id;
+  }
+  if(window.scrollY < 120) act = null;
+  for(const b of document.querySelectorAll('[data-nav]'))
+    b.classList.toggle('on', b.getAttribute('data-nav') === act);
+  const cta = document.getElementById('cta-fija');
+  if(cta) cta.classList.toggle('oculta', window.scrollY < 330);
+}
+
+function encabezado(sub, volver){
+  return '<div class="enc">'+
+    '<img class="logo" src="NAS_BEAUTY_STUDIO.jpg" alt="NÄS Beauty Studio" '+
+      'onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'+
+    '<div class="logo-fallback">N</div>'+
+    '<div class="marca"><div class="n">NÄS</div><div class="s">Beauty Studio</div></div>'+
+    (sub ? '<div class="der">'+esc(sub)+'</div>' : '')+
+    (volver ? '<button class="volver" onclick="irInicio()" title="Salir y volver al inicio" aria-label="Volver al inicio">'+
+      '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button>' : '')+
+  '</div>';
+}
+
+function aviso(txt){
+  const el = document.getElementById('aviso');
+  el.textContent = txt;
+  el.classList.add('ver');
+  clearTimeout(aviso._t);
+  aviso._t = setTimeout(()=>el.classList.remove('ver'), 2200);
+}
+
+function modal(html){
+  document.getElementById('capa-modal').innerHTML =
+    '<div class="velo" onclick="if(event.target===this)cerrarModal()"><div class="hoja-modal">'+html+'</div></div>';
+}
+function cerrarModal(){ document.getElementById('capa-modal').innerHTML=''; }
+
+/* ============================================================
+   6. Pantalla de la clienta — flujo de reserva
+   ============================================================ */
+const PASOS = ['Servicio','Adicionales','Día','Hora','Datos','Depósito'];
+
+function barraPasos(){
+  let h = '<div class="pasos">';
+  for(let i=1;i<=6;i++) h += '<div class="p '+(i<V.paso?'hecho':(i===V.paso?'on':''))+'"><i></i></div>';
+  return h+'</div>';
+}
+function tituloPaso(t){
+  return '<div class="paso-tit"><div class="num">'+V.paso+' / 6</div><h2>'+t+'</h2></div>';
+}
+
+function verCliente(){
+  let h = encabezado(null, true);
+  h += barraPasos();
+  h += '<div class="cuerpo'+(V.paso >= 6 ? ' sin-barra' : '')+'">';
+  if(V.paso === 1) h += pasoServicios();
+  if(V.paso === 2) h += pasoAdicionales();
+  if(V.paso === 3) h += pasoDia();
+  if(V.paso === 4) h += pasoHora();
+  if(V.paso === 5) h += pasoDatos();
+  if(V.paso === 6) h += pasoDeposito();
+  if(V.paso === 7) h += pasoConfirmado();
+  h += '</div>';
+  if(V.paso <= 5) h += pie();
+  return h;
+}
+
+function pie(){
+  return '<div class="pie">NÄS Beauty Studio · '+esc(S.config.direccion)+'<br>'+
+    '<a href="'+enlaceWA('Hola Ariana, vengo de la página de NÄS Beauty Studio.')+'" target="_blank" rel="noopener">WhatsApp '+esc(S.config.sinpe)+'</a>'+
+    ' · <a href="https://instagram.com/nas.nails" target="_blank" rel="noopener">@nas.nails</a>'+
+    '<div><button class="adm" onclick="pedirPin()">Admin</button></div></div>';
+}
+
+/* --- Paso 1: servicio principal (hasta dos) --- */
+function pasoServicios(){
+  let h = tituloPaso('¿Qué te vas a hacer?');
+  h += '<div class="nota" style="margin:8px 0 16px">Podés elegir hasta dos servicios para la misma cita, por ejemplo manos y pies. Se reservan seguidos en un solo bloque.</div>';
+  for(const s of S.servicios){
+    const on = V.sel.includes(s.id);
+    const tope = !on && V.sel.length >= 2;
+    h += '<button class="serv '+(on?'sel':'')+'" '+(tope?'disabled':'')+' onclick="tocarServicio(\''+s.id+'\')" style="margin-bottom:9px">'+
+      '<span class="marca-sel">'+ICO.check+'</span>'+
+      '<span style="flex:1">'+
+        '<span class="nom">'+esc(s.nombre)+'</span>'+
+        '<span class="meta">'+dur(s.min)+(s.todo?' <span class="tag">estimado</span>':'')+'</span>'+
+      '</span>'+
+      '<span class="precio">'+col(s.precio)+'</span>'+
+    '</button>';
+  }
+  if(V.sel.length === 2){
+    h += '<div class="nota-caja" style="margin-top:6px">Dos servicios en la misma cita: el depósito es de '+col(2*S.config.depositoPorServicio)+' ('+col(S.config.depositoPorServicio)+' por servicio).</div>';
+  }
+  return h + barraInferior();
+}
+
+/* --- Paso 2: adicionales --- */
+function pasoAdicionales(){
+  let h = tituloPaso('¿Necesitás algo más?');
+  h += '<div class="nota" style="margin:8px 0 16px">Si llegás con esmaltado o uñas puestas de otra cita, marcá el retiro. Suma tiempo y precio.</div>';
+  for(const a of S.adicionales){
+    const q = V.adic[a.id] || 0;
+    const on = q > 0;
+    if(a.porUnidad){
+      h += '<div class="add '+(on?'sel':'')+'">'+
+        '<span class="caja" onclick="ponAdic(\''+a.id+'\','+(on?0:1)+')">'+ICO.check+'</span>'+
+        '<span style="flex:1"><div class="nom">'+esc(a.nombre)+'</div>'+
+        '<div class="meta">'+col(a.precio)+' por uña · +'+a.min+' min c/u'+(a.todo?' <span class="tag">estimado</span>':'')+'</div></span>'+
+        '<span class="cont"><button onclick="ponAdic(\''+a.id+'\','+Math.max(0,q-1)+')">−</button>'+
+        '<span>'+q+'</span><button onclick="ponAdic(\''+a.id+'\','+(q+1)+')">+</button></span>'+
+      '</div>';
+    }else{
+      h += '<button class="add '+(on?'sel':'')+'" onclick="ponAdic(\''+a.id+'\','+(on?0:1)+')">'+
+        '<span class="caja">'+ICO.check+'</span>'+
+        '<span style="flex:1"><div class="nom">'+esc(a.nombre)+'</div>'+
+        '<div class="meta">+'+a.min+' min'+(a.todo?' <span class="tag">estimado</span>':'')+'</div></span>'+
+        '<span class="precio" style="font-size:14px">'+col(a.precio)+'</span>'+
+      '</button>';
+    }
+  }
+  h += '<div class="nota" style="margin-top:14px">Podés seguir sin agregar nada.</div>';
+  return h + barraInferior();
+}
+
+/* --- Paso 3: día --- */
+function pasoDia(){
+  const t = totalSel();
+  if(!V.mes){ const p = partesCR(); const d = deYMD(p.ymd); V.mes = {y:d.getUTCFullYear(), m:d.getUTCMonth()}; }
+  let h = tituloPaso('Elegí el día');
+  h += '<div class="nota" style="margin:8px 0 16px">Se muestran solo los días donde caben '+dur(t.minutos)+' seguidos.</div>';
+  h += '<div class="card">' + calendario() + '</div>';
+  h += '<div class="nota" style="margin-top:12px;display:flex;align-items:center;gap:8px">'+
+       '<i style="width:3px;height:3px;border-radius:50%;background:var(--marron-claro);display:block"></i> con espacio disponible</div>';
+  return h + barraInferior();
+}
+
+function calendario(){
+  const t = totalSel();
+  const {y,m} = V.mes;
+  const hoy = hoyCR();
+  const primero = new Date(Date.UTC(y,m,1));
+  const dias = new Date(Date.UTC(y,m+1,0)).getUTCDate();
+  const desfase = (primero.getUTCDay()+6)%7;                     // semana inicia lunes
+  const pMes = partesCR(); const dHoy = deYMD(pMes.ymd);
+  const atras = (y === dHoy.getUTCFullYear() && m === dHoy.getUTCMonth());
+  const maxFecha = sumarDias(hoy, S.config.diasAdelante || 60);
+  const proxMes = new Date(Date.UTC(y,m+1,1)).toISOString().slice(0,10);
+  const adelante = proxMes > maxFecha;
+  const idx = indiceOcupado();                                   // una sola vez por repintado
+
+  let h = '<div class="cal-enc">'+
+    '<button class="flecha" '+(atras?'disabled':'')+' onclick="moverMes(-1)">'+ICO.flechaI+'</button>'+
+    '<h3>'+capital(MESES[m])+' '+y+'</h3>'+
+    '<button class="flecha" '+(adelante?'disabled':'')+' onclick="moverMes(1)">'+ICO.flechaD+'</button>'+
+  '</div><div class="cal">';
+  for(const d of ['L','M','M','J','V','S','D']) h += '<div class="dow">'+d+'</div>';
+  for(let i=0;i<desfase;i++) h += '<div></div>';
+  for(let d=1;d<=dias;d++){
+    const f = y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const fuera = f < hoy || f > maxFecha;
+    const libre = !fuera && espacios(f, t.minutos, {indice:idx}).length > 0;
+    h += '<button class="dia '+(V.fecha===f?'sel':'')+' '+(f===hoy?'hoy':'')+'" '+(libre?'':'disabled')+
+         ' onclick="elegirDia(\''+f+'\')">'+d+(libre?'<i></i>':'')+'</button>';
+  }
+  return h+'</div>';
+}
+
+/* --- Paso 4: hora --- */
+function pasoHora(){
+  const t = totalSel();
+  const libres = espacios(V.fecha, t.minutos);
+  let h = tituloPaso('Elegí la hora');
+  h += '<div class="nota" style="margin:8px 0 16px">'+capital(fechaLarga(V.fecha))+' · '+dur(t.minutos)+' de atención.</div>';
+  if(!libres.length){
+    h += vacio('Ese día se llenó mientras elegías. Probá con otro.', 'hoja');
+    h += '<button class="btn sec" onclick="irPaso(3)">Ver otros días</button>';
+    return h + barraInferior();
+  }
+  const manana = libres.filter(x=>x<12*60), tarde = libres.filter(x=>x>=12*60);
+  if(manana.length){
+    h += '<div class="rot">Mañana</div><div class="horas">';
+    for(const x of manana) h += '<button class="hora '+(V.hora===x?'sel':'')+'" onclick="elegirHora('+x+')">'+hora12(x)+'</button>';
+    h += '</div>';
+  }
+  if(tarde.length){
+    h += '<div class="rot">Tarde</div><div class="horas">';
+    for(const x of tarde) h += '<button class="hora '+(V.hora===x?'sel':'')+'" onclick="elegirHora('+x+')">'+hora12(x)+'</button>';
+    h += '</div>';
+  }
+  if(V.hora!=null) h += '<div class="nota" style="margin-top:14px">Terminarías cerca de las '+hora12(V.hora+t.minutos)+'.</div>';
+  return h + barraInferior();
+}
+
+/* --- Paso 5: datos --- */
+function pasoDatos(){
+  const c = V.cliente, e = V.errores;
+  let h = tituloPaso('Tus datos');
+  h += '<div class="nota" style="margin:8px 0 16px">Los necesita para confirmarte y para el detalle del depósito.</div>';
+  h += '<div class="campo"><label>Nombre completo</label>'+
+    '<input class="inp '+(e.nombre?'mal':'')+'" id="f-nombre" value="'+esc(c.nombre)+'" autocomplete="name" oninput="V.cliente.nombre=this.value">'+
+    (e.nombre?'<div class="err">'+e.nombre+'</div>':'')+'</div>';
+  let ops = '';
+  for(const p of PAISES) ops += '<option value="'+p.c+'" '+(c.pais===p.c?'selected':'')+'>'+p.d+' '+p.c+'</option>';
+  h += '<div class="campo"><label>Teléfono</label><div class="dos">'+
+    '<select class="inp pais" onchange="V.cliente.pais=this.value">'+ops+'</select>'+
+    '<input class="inp '+(e.tel?'mal':'')+'" id="f-tel" inputmode="tel" value="'+esc(c.tel)+'" placeholder="'+(pais(c.pais).len===8?'8888 8888':'')+'" oninput="V.cliente.tel=this.value">'+
+    '</div>'+(e.tel?'<div class="err">'+e.tel+'</div>':'')+'</div>';
+  h += '<div class="campo"><label>Correo electrónico</label>'+
+    '<input class="inp '+(e.email?'mal':'')+'" id="f-email" inputmode="email" autocapitalize="off" value="'+esc(c.email)+'" oninput="V.cliente.email=this.value">'+
+    (e.email?'<div class="err">'+e.email+'</div>':'')+'</div>';
+  if(e.limite){
+    h += '<div class="nota-caja" style="margin-top:16px;background:rgba(169,112,79,.1);border-color:rgba(169,112,79,.3)">'+
+      '<b style="font-weight:400;color:var(--alerta)">No podemos apartar otro espacio.</b><br>'+e.limite+'<br><br>'+
+      'Si ya hiciste el depósito, mandanos el comprobante por WhatsApp al '+esc(S.config.sinpe)+'.</div>';
+  }else{
+    h += '<div class="nota-caja" style="margin-top:16px">En el siguiente paso tu espacio queda apartado por '+
+      S.config.horasApartado+' hora'+(S.config.horasApartado===1?'':'s')+' mientras hacés el depósito. Nadie más lo puede tomar en ese rato.</div>';
+  }
+  return h + barraInferior();
+}
+
+/* --- Paso 6: depósito (bloquea el horario) --- */
+function pasoDeposito(){
+  const c = S.citas.find(x=>x.id===V.citaId);
+  if(!c) return '<div class="vacio">Se perdió el hilo de la reserva. Volvé a empezar.</div><button class="btn" onclick="reiniciarFlujo()">Empezar de nuevo</button>';
+
+  if(c.estado === 'expirada'){
+    let h = tituloPaso('El apartado expiró');
+    h += '<div class="card" style="margin-top:16px">'+
+      '<div class="nota">Pasaron las '+S.config.horasApartado+' horas sin que llegara el comprobante, así que el espacio de '+
+      fechaCorta(c.fecha)+' a las '+hora12(aMin(c.hora))+' volvió a quedar disponible para todas.</div>'+
+      '<div class="sep"></div>'+
+      '<button class="btn" onclick="irPaso(3)">Elegir otro día u hora</button>'+
+    '</div>';
+    return h;
+  }
+
+  let h = tituloPaso('Apartá con tu depósito');
+
+  h += '<div class="reloj" style="margin:14px 0 16px">'+ICO.reloj+
+    '<div><div class="t" data-cuenta="'+c.id+'">'+cuenta(c.apartadoHasta)+'</div>'+
+    '<div class="d"><b>Tu espacio queda apartado por '+S.config.horasApartado+' horas</b> mientras confirmamos el depósito. '+
+    'Nadie más lo puede tomar en ese rato.</div></div></div>';
+
+  h += '<div class="card">'+resumenCita(c, true)+'</div>';
+
+  h += '<div style="height:12px"></div>';
+  h += '<div class="dep">'+
+    '<div class="et">Depósito para apartar</div>'+
+    '<div class="monto">'+col(c.deposito)+'</div>'+
+    '<div class="det">'+c.servicios.length+' servicio'+(c.servicios.length>1?'s':'')+' × '+col(S.config.depositoPorServicio)+
+      ' · se descuenta del total el día de la cita</div>'+
+    '<div class="sinpe"><div><div class="k">SINPE Móvil</div><div class="n">'+esc(S.config.sinpe)+'</div></div>'+
+      '<button class="copiar" onclick="copiar(\''+esc(S.config.sinpe).replace(/[^0-9-]/g,'')+'\')">'+ICO.copiar+'Copiar</button></div>'+
+    '<div class="nota" style="margin-top:10px;text-align:left">A nombre de '+esc(S.config.titular)+'. En el detalle del SINPE escribí tu nombre completo. El depósito no es reembolsable.</div>'+
+  '</div>';
+
+  h += '<div class="rot">Comprobante</div>';
+  h += '<div class="campo"><label>Número de comprobante</label>'+
+    '<input class="inp '+(V.errores.comp?'mal':'')+'" inputmode="numeric" value="'+esc(V.comprobante)+'" oninput="V.comprobante=this.value">'+
+    (V.errores.comp?'<div class="err">'+V.errores.comp+'</div>':'')+'</div>';
+  h += '<label class="adjunto" for="f-captura">'+
+      (V.captura ? '<img src="'+V.captura+'" alt="captura del comprobante"><span style="flex:1">Captura adjunta</span><span class="tag">cambiar</span>'
+                 : ICO.clip+'<span style="flex:1">Adjuntar la captura del comprobante</span><span class="tag">opcional</span>')+
+    '</label>'+
+    '<input type="file" id="f-captura" accept="image/*" style="display:none" onchange="tomarCaptura(this)">';
+
+  h += '<div style="height:18px"></div>';
+  h += '<button class="btn" onclick="enviarComprobante()">Ya hice el depósito</button>';
+  h += '<div style="height:6px"></div>';
+  h += '<button class="txt-btn" style="width:100%" onclick="soltarApartado()">Cancelar y liberar el espacio</button>';
+  return h;
+}
+
+/* --- Paso 7: confirmación --- */
+function pasoConfirmado(){
+  const c = S.citas.find(x=>x.id===V.citaId);
+  if(!c) return '<div class="vacio">Se perdió el hilo de la reserva.</div>';
+  let h = '<div style="height:20px"></div><div class="ok-sello">'+ICO.sello+'</div>';
+  h += '<div style="text-align:center"><h2 style="font-size:27px;font-weight:300">Recibimos tu comprobante</h2>'+
+    '<div class="nota" style="margin-top:8px">'+esc(S.config.titular)+' lo revisa y te confirma. Tu espacio está bloqueado mientras tanto.</div>'+
+    '<div style="margin-top:12px"><span class="est pendiente">Pendiente de confirmación</span></div></div>';
+  h += '<div style="height:18px"></div>';
+  h += '<div class="card">'+resumenCita(c, true)+'</div>';
+  h += '<div style="height:10px"></div>';
+  h += '<div class="nota-caja"><b>Dónde es</b><br>'+esc(S.config.direccion)+', Costa Rica.<br>'+
+       'Estacionamiento gratis y exclusivo para clientas.<br><br>'+
+       'Se dan 10 minutos de tolerancia. Los cambios y cancelaciones se piden con 48 horas de anticipación.</div>';
+  h += '<div style="height:16px"></div>';
+  h += '<button class="btn wa" onclick="abrirWhatsApp(\''+c.id+'\')">'+ICO.wa+'Enviar el resumen por WhatsApp</button>';
+  h += '<div style="height:8px"></div>';
+  h += '<button class="btn sec" onclick="reiniciarFlujo()">Volver al inicio</button>';
+  return h;
+}
+
+/* Resumen de una cita, en líneas */
+function resumenCita(c, conFecha){
+  let h = '';
+  if(conFecha){
+    h += '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px">'+
+      '<div class="grande" style="flex:1">'+capital(fechaLarga(c.fecha))+'</div>'+
+      '<div class="grande">'+hora12(aMin(c.hora))+'</div></div><div class="sep" style="margin:0 0 10px"></div>';
+  }
+  for(const s of c.servicios) h += '<div class="lin"><span>'+esc(s.nombre)+'</span><span class="v">'+col(s.precio)+'</span></div>';
+  for(const a of (c.adicionales||[])) h += '<div class="lin sub"><span>'+esc(a.nombre)+(a.cant>1?' × '+a.cant:'')+'</span><span class="v">'+col(a.precio*a.cant)+'</span></div>';
+  h += '<div class="lin sub" style="margin-top:6px"><span>Duración</span><span class="v">'+dur(c.duracion)+'</span></div>';
+  h += '<div class="lin tot"><span>Total</span><span class="v">'+col(c.total)+'</span></div>';
+  h += '<div class="lin sub"><span>Depósito para apartar</span><span class="v">'+col(c.deposito)+'</span></div>';
+  h += '<div class="lin sub"><span>Se paga en el estudio</span><span class="v">'+col(c.total - c.deposito)+'</span></div>';
+  return h;
+}
+
+function barraInferior(){
+  const t = totalSel();
+  let listo = false, txt = 'Continuar';
+  if(V.paso === 1){ listo = V.sel.length > 0; txt = V.sel.length ? 'Continuar' : 'Elegí un servicio'; }
+  if(V.paso === 2) listo = true;
+  if(V.paso === 3){ listo = !!V.fecha; txt = V.fecha ? 'Continuar' : 'Elegí un día'; }
+  if(V.paso === 4){ listo = V.hora != null; txt = V.hora != null ? 'Continuar' : 'Elegí una hora'; }
+  if(V.paso === 5){ listo = true; txt = 'Apartar mi espacio'; }
+  let h = '<div class="barra"><div class="in">';
+  if(V.sel.length){
+    h += '<div class="resumen-min"><b>'+col(t.precio)+'</b><span>'+dur(t.minutos)+'</span>';
+    if(V.fecha && V.paso>=4) h += '<span><span class="punto"></span> '+fechaCorta(V.fecha)+(V.hora!=null?' · '+hora12(V.hora):'')+'</span>';
+    if(V.paso>1) h += '<button class="txt-btn atras" onclick="irPaso('+(V.paso-1)+')">Atrás</button>';
+    h += '</div>';
+  }
+  h += '<button class="btn" '+(listo?'':'disabled')+' onclick="siguiente()">'+txt+'</button>';
+  return h+'</div></div>';
+}
+
+function vacio(txt, ico){
+  return '<div class="vacio"><div class="ic">'+(ICO[ico]||ICO.hoja)+'</div>'+txt+'</div>';
+}
+
+/* ============================================================
+   7. Acciones del flujo
+   ============================================================ */
+function tocarServicio(id){
+  const i = V.sel.indexOf(id);
+  if(i >= 0) V.sel.splice(i,1);
+  else if(V.sel.length < 2) V.sel.push(id);
+  V.hora = null;
+  pintar();
+}
+function ponAdic(id,q){
+  q = Math.max(0, Math.min(10, q));
+  if(q === 0) delete V.adic[id]; else V.adic[id] = q;
+  V.hora = null;
+  pintar();
+}
+function elegirDia(f){ V.fecha = f; V.hora = null; pintar(); }
+function elegirHora(x){ V.hora = x; pintar(); }
+function moverMes(n){
+  let {y,m} = V.mes; m += n;
+  if(m < 0){ m = 11; y--; } if(m > 11){ m = 0; y++; }
+  V.mes = {y,m}; pintar();
+}
+function irPaso(p){
+  if(p <= 5 && V.citaId) soltarApartado(true);
+  V.paso = p; V.errores = {};
+  window.scrollTo(0,0);
+  pintar();
+}
+function siguiente(){
+  if(V.paso === 1 && !V.sel.length) return;
+  if(V.paso === 3 && !V.fecha) return;
+  if(V.paso === 4 && V.hora == null) return;
+  if(V.paso === 5){ if(!validarDatos()) { pintar(); return; } crearApartado(); return; }
+  irPaso(V.paso + 1);
+}
+function validarDatos(){
+  const c = V.cliente, e = {};
+  if(c.nombre.trim().split(/\s+/).filter(Boolean).length < 2) e.nombre = 'Escribí tu nombre y apellido.';
+  const dig = c.tel.replace(/\D/g,''), p = pais(c.pais);
+  if(dig.length !== p.len) e.tel = 'El teléfono de '+p.n+' lleva '+p.len+' dígitos.';
+  if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(c.email.trim())) e.email = 'Revisá el correo.';
+  V.errores = e;
+  return Object.keys(e).length === 0;
+}
+
+function nuevoId(){ return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+/* Congela precios y duraciones dentro de la cita: el histórico no cambia
+   si mañana ella sube la lista de precios. */
+const soloDigitos = s => String(s||'').replace(/\D/g,'');
+
+/* Apartados sin confirmar que ya tiene esta persona, por teléfono o correo */
+function apartadosDe(tel, email){
+  const t = soloDigitos(tel), e = (email||'').trim().toLowerCase();
+  return S.citas.filter(c =>
+    (c.estado === 'pendiente' || (c.estado === 'apartada' && bloquea(c))) &&
+    ((t && soloDigitos(c.cliente.tel).endsWith(t.slice(-8))) ||
+     (e && (c.cliente.email||'').trim().toLowerCase() === e))
+  );
+}
+
+function crearApartado(){
+  const t = totalSel();
+  if(!espacios(V.fecha, t.minutos).includes(V.hora)){
+    aviso('Ese espacio ya no está disponible');
+    V.hora = null; irPaso(4); return;
+  }
+  const previos = apartadosDe(V.cliente.tel, V.cliente.email);
+  if(previos.length >= (S.config.maxApartados || 2)){
+    V.errores = {limite:
+      'Ya tenés '+previos.length+' espacio'+(previos.length>1?'s':'')+' sin confirmar ('+
+      previos.map(c=>fechaCorta(c.fecha)+' a las '+hora12(aMin(c.hora))).join(' y ')+
+      '). Completá el depósito de '+(previos.length>1?'esos':'ese')+' antes de apartar otro.'};
+    V.paso = 5; window.scrollTo(0,0); pintar(); return;
+  }
+  const p = pais(V.cliente.pais);
+  const c = {
+    id:nuevoId(),
+    fecha:V.fecha,
+    hora:aHora(V.hora),
+    duracion:t.minutos,
+    servicios:V.sel.map(id=>{ const s=servicio(id); return {id:s.id, nombre:s.nombre, precio:s.precio, min:s.min}; }),
+    adicionales:Object.keys(V.adic).map(id=>{ const a=adicional(id); return {id:a.id, nombre:a.nombre, precio:a.precio, min:a.min, cant:V.adic[id]}; }),
+    total:t.precio,
+    deposito:t.deposito,
+    cliente:{ nombre:V.cliente.nombre.trim(), tel:p.d+' '+V.cliente.tel.replace(/\D/g,''), email:V.cliente.email.trim() },
+    estado:'apartada',
+    origen:'link',
+    creada:Date.now(),
+    apartadoHasta: finApartado(V.fecha, V.hora),
+    comprobante:null,
+    captura:null
+  };
+  S.citas.push(c);
+  V.citaId = c.id;
+  V.comprobante = ''; V.captura = null; V.errores = {};
+  guardar();
+  V.paso = 6; window.scrollTo(0,0); pintar();
+}
+
+function soltarApartado(silencio){
+  const i = S.citas.findIndex(c=>c.id===V.citaId);
+  if(i >= 0 && (S.citas[i].estado === 'apartada' || S.citas[i].estado === 'expirada')) S.citas.splice(i,1);
+  V.citaId = null; guardar();
+  if(!silencio){ aviso('Espacio liberado'); irPaso(4); }
+}
+
+function tomarCaptura(inp){
+  const f = inp.files && inp.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 900, e = Math.min(1, max/Math.max(img.width,img.height));
+      const cv = document.createElement('canvas');
+      cv.width = Math.round(img.width*e); cv.height = Math.round(img.height*e);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      V.captura = cv.toDataURL('image/jpeg',.7);
+      pintar();
+    };
+    img.onerror = () => aviso('No se pudo leer la imagen');
+    img.src = r.result;
+  };
+  r.readAsDataURL(f);
+}
+
+function enviarComprobante(){
+  const c = S.citas.find(x=>x.id===V.citaId);
+  if(!c) return;
+  if(c.estado === 'expirada'){ pintar(); return; }
+  if(!V.comprobante.trim() && !V.captura){
+    V.errores = {comp:'Escribí el número del comprobante o adjuntá la captura.'};
+    pintar(); return;
+  }
+  c.comprobante = V.comprobante.trim() || null;
+  c.captura = V.captura;
+  c.estado = 'pendiente';
+  c.enviado = Date.now();
+  V.errores = {};
+  guardar();
+  V.paso = 7; window.scrollTo(0,0); pintar();
+}
+
+function reiniciarFlujo(){
+  V.sel = []; V.adic = {}; V.fecha = null; V.hora = null; V.citaId = null;
+  V.cliente = {nombre:'',pais:'CR',tel:'',email:''};
+  V.comprobante = ''; V.captura = null; V.errores = {}; V.paso = 1;
+  V.pantalla = 'inicio';
+  window.scrollTo(0,0); pintar();
+}
+
+function copiar(txt){
+  const ok = () => aviso('Número copiado');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(ok, () => copiaVieja(txt, ok));
+  } else copiaVieja(txt, ok);
+}
+function copiaVieja(txt, ok){
+  const a = document.createElement('textarea');
+  a.value = txt; a.style.position='fixed'; a.style.opacity='0';
+  document.body.appendChild(a); a.select();
+  try{ document.execCommand('copy'); ok(); }catch(e){ aviso(txt); }
+  document.body.removeChild(a);
+}
+
+function abrirWhatsApp(id){
+  const c = S.citas.find(x=>x.id===id); if(!c) return;
+  const l = [];
+  l.push('Hola '+S.config.titular+', aparté una cita por la agenda en línea.');
+  l.push('');
+  l.push('Nombre: '+c.cliente.nombre);
+  l.push('Día: '+fechaLarga(c.fecha));
+  l.push('Hora: '+hora12(aMin(c.hora)));
+  l.push('Servicios: '+c.servicios.map(s=>s.nombre).join(' + '));
+  if(c.adicionales && c.adicionales.length) l.push('Adicionales: '+c.adicionales.map(a=>a.nombre+(a.cant>1?' x'+a.cant:'')).join(', '));
+  l.push('Duración: '+dur(c.duracion));
+  l.push('Total: '+col(c.total));
+  l.push('Depósito enviado: '+col(c.deposito));
+  if(c.comprobante) l.push('Comprobante: '+c.comprobante);
+  l.push('');
+  l.push('Adjunto la captura del SINPE.');
+  window.open('https://wa.me/'+S.config.whatsapp+'?text='+encodeURIComponent(l.join('\n')), '_blank');
+}
+
+/* ============================================================
+   8. Panel de Ariana
+   ============================================================ */
+function pedirPin(){
+  modal('<div class="modal-enc"><div><h3>Panel del estudio</h3>'+
+    '<div class="nota">Ingresá tu PIN.</div></div><button class="x" onclick="cerrarModal()">×</button></div>'+
+    '<input class="inp" id="pin" inputmode="numeric" maxlength="6" type="password" style="text-align:center;letter-spacing:.5em;font-size:22px" '+
+    'onkeydown="if(event.key===\'Enter\')validarPin()">'+
+    '<div id="pin-err" class="err" style="text-align:center"></div>'+
+    '<div style="height:12px"></div><button class="btn" onclick="validarPin()">Entrar</button>');
+  setTimeout(()=>{ const e=document.getElementById('pin'); if(e) e.focus(); },80);
+}
+function validarPin(){
+  const v = (document.getElementById('pin')||{}).value || '';
+  if(v === S.config.pin){
+    cerrarModal();
+    V.admin.pinOk = true;
+    V.admin.fecha = hoyCR();
+    V.pantalla = 'admin';
+    window.scrollTo(0,0); pintar();
+  }else{
+    document.getElementById('pin-err').textContent = 'PIN incorrecto.';
+  }
+}
+function salirAdmin(){ V.pantalla = 'inicio'; window.scrollTo(0,0); pintar(); }
+function tabAdmin(t){ V.admin.tab = t; window.scrollTo(0,0); pintar(); }
+
+function verAdmin(){
+  const pend = S.citas.filter(c=>c.estado==='pendiente').length;
+  const apart = S.citas.filter(c=>c.estado==='apartada' && bloquea(c)).length;
+  const n = pend + apart;
+  let h = encabezado('Panel');
+  h += '<div class="tabs">';
+  const tabs = [['solicitudes','Solicitudes'],['agenda','Agenda'],['config','Configuración'],['ingresos','Ingresos']];
+  for(const [k,t] of tabs){
+    h += '<button class="tab '+(V.admin.tab===k?'on':'')+'" onclick="tabAdmin(\''+k+'\')">'+t+
+      (k==='solicitudes'&&n?'<span class="bola">'+n+'</span>':'')+'</button>';
+  }
+  h += '</div><div class="cuerpo" style="padding-top:18px">';
+  if(V.admin.tab==='solicitudes') h += tabSolicitudes();
+  if(V.admin.tab==='agenda')      h += tabAgenda();
+  if(V.admin.tab==='config')      h += tabConfig();
+  if(V.admin.tab==='ingresos')    h += tabIngresos();
+  h += '<div style="height:26px"></div><button class="txt-btn" style="width:100%" onclick="salirAdmin()">Salir del panel</button>';
+  h += '</div>';
+  h += '<button class="fab" onclick="modalManual()">'+ICO.mas+'Cita manual</button>';
+  return h;
+}
+
+function cuenta(hasta){
+  let s = Math.max(0, Math.floor((hasta - Date.now())/1000));
+  const h = Math.floor(s/3600); s -= h*3600;
+  const m = Math.floor(s/60); s -= m*60;
+  return (h>0? h+':' : '') + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function encCita(c, extra){
+  return '<div class="cita-enc"><div class="h">'+hora12(aMin(c.hora)).replace(' ','<span style="font-size:11px;letter-spacing:.06em"> ')+'</span></div>'+
+    '<div style="flex:1;min-width:0"><div class="nm">'+esc(c.cliente.nombre)+'</div>'+
+    '<div class="sub">'+fechaCorta(c.fecha)+' · '+dur(c.duracion)+' · '+(c.origen==='manual'?'registrada a mano':'por el link')+'</div></div>'+
+    '<div class="lado"><span class="est '+c.estado+'">'+etiqueta(c.estado)+'</span>'+(extra||'')+'</div></div>';
+}
+/* Arma el enlace de WhatsApp hacia la clienta.
+   Los teléfonos están guardados como "+506 8812 4497": hay que dejar
+   solo los dígitos. Devuelve null si la cita no tiene teléfono. */
+function waCliente(c){
+  let n = soloDigitos(c.cliente && c.cliente.tel);
+  if(!n) return null;
+  if(n.length === 8) n = '506' + n;                 // número tico sin código de país
+  const resta = c.total - (['pendiente','aprobada','completada'].includes(c.estado) ? c.deposito : 0);
+  const datos = {
+    nombre:(c.cliente.nombre||'').split(' ')[0] || c.cliente.nombre,
+    dia:fechaLarga(c.fecha),
+    hora:hora12(aMin(c.hora)),
+    servicios:c.servicios.map(s=>s.nombre).join(' + ').toLowerCase(),
+    duracion:dur(c.duracion),
+    total:col(c.total),
+    deposito:col(c.deposito),
+    resta:col(resta),
+    sinpe:S.config.sinpe
+  };
+  const plantilla = MENSAJES_WA[c.estado] || MENSAJES_WA.otro;
+  const texto = plantilla
+    .replace(/\{(\w+)\}/g, (m,k) => datos[k] !== undefined ? datos[k] : m)
+    .replace(/\.\.(?!\.)/g, '.');        // "a las 11:30 a.m.." -> "a las 11:30 a.m."
+  return 'https://wa.me/'+n+'?text='+encodeURIComponent(texto);
+}
+function botonWA(c){
+  const url = waCliente(c);
+  if(!url) return '';                               // sin teléfono, sin botón
+  return '<a class="mini w" href="'+url+'" target="_blank" rel="noopener">'+ICO.wa+'WhatsApp</a>';
+}
+
+function etiqueta(e){
+  return {apartada:'Apartada', pendiente:'Por confirmar', aprobada:'Confirmada', completada:'Completada',
+          rechazada:'Rechazada', cancelada:'Cancelada', expirada:'Expirada'}[e] || e;
+}
+function detalleCita(c){
+  let h = '<div class="cuerpo-cita">';
+  for(const s of c.servicios) h += '<div class="lin"><span>'+esc(s.nombre)+'</span><span class="v">'+col(s.precio)+'</span></div>';
+  for(const a of (c.adicionales||[])) h += '<div class="lin sub"><span>'+esc(a.nombre)+(a.cant>1?' × '+a.cant:'')+'</span><span class="v">'+col(a.precio*a.cant)+'</span></div>';
+  h += '<div class="lin tot"><span>Total</span><span class="v">'+col(c.total)+'</span></div>';
+  const dep = ['pendiente','aprobada','completada'].includes(c.estado) ? c.deposito : 0;
+  const etDep = dep ? 'Depósito recibido'
+              : (c.estado === 'apartada' ? 'Depósito por llegar'
+              : (c.origen === 'manual' ? 'Sin depósito, cita a mano' : 'Sin depósito'));
+  h += '<div class="lin sub"><span>'+etDep+'</span><span class="v">'+col(dep)+'</span></div>';
+  h += '<div class="lin sub"><span>Por cobrar en el estudio</span><span class="v">'+col(c.total-dep)+'</span></div>';
+  h += '<div class="sep"></div><div class="nota">'+esc(c.cliente.tel||'sin teléfono')+
+       (c.cliente.email?' · '+esc(c.cliente.email):'')+'</div>';
+  return h+'</div>';
+}
+
+/* --- Solicitudes --- */
+function tabSolicitudes(){
+  const pend  = S.citas.filter(c=>c.estado==='pendiente').sort((a,b)=>(a.enviado||0)-(b.enviado||0));
+  const apart = S.citas.filter(c=>c.estado==='apartada' && bloquea(c)).sort((a,b)=>a.apartadoHasta-b.apartadoHasta);
+  let h = '';
+
+  h += '<div class="rot">Esperando tu decisión'+(pend.length?' · '+pend.length:'')+'</div>';
+  if(!pend.length) h += vacio('Nada pendiente. Cuando alguien mande su comprobante, aparece acá.','sello');
+  for(const c of pend){
+    h += '<div class="cita">'+encCita(c)+detalleCita(c);
+    h += '<div class="nota-caja" style="margin-top:11px">Comprobante: <b>'+esc(c.comprobante||'no escribió el número')+'</b></div>';
+    if(c.captura) h += '<img class="thumb" src="'+c.captura+'" alt="captura del comprobante" onclick="verCaptura(\''+c.id+'\')">';
+    else h += '<div class="nota" style="margin-top:8px">Sin captura adjunta.</div>';
+    h += '<div class="acc">'+botonWA(c)+
+         '<button class="mini" onclick="modalMover(\''+c.id+'\')">Mover</button>'+
+         '<button class="mini g" onclick="aprobar(\''+c.id+'\')">Aprobar</button>'+
+         '<button class="mini r" onclick="rechazar(\''+c.id+'\')">Rechazar</button></div>';
+    h += '</div>';
+  }
+
+  h += '<div class="rot">Apartadas, esperando el depósito'+(apart.length?' · '+apart.length:'')+'</div>';
+  if(!apart.length) h += vacio('Ningún espacio apartado en este momento.','reloj');
+  for(const c of apart){
+    const extra = '<div class="reloj" style="padding:7px 10px;gap:8px"><div><div class="t" style="font-size:20px" data-cuenta="'+c.id+'">'+cuenta(c.apartadoHasta)+'</div></div></div>';
+    h += '<div class="cita urg">'+encCita(c, extra)+detalleCita(c)+
+      '<div class="nota" style="margin-top:10px">Si no llega el comprobante, el espacio se libera solo y vuelve a estar disponible.</div>'+
+      '<div class="acc">'+botonWA(c)+
+      '<button class="mini" onclick="modalMover(\''+c.id+'\')">Mover</button>'+
+      '<button class="mini r" onclick="liberar(\''+c.id+'\')">Liberar ahora</button></div></div>';
+  }
+  return h;
+}
+function verCaptura(id){
+  const c = S.citas.find(x=>x.id===id); if(!c || !c.captura) return;
+  modal('<div class="modal-enc"><div><h3>Comprobante</h3><div class="nota">'+esc(c.cliente.nombre)+' · '+col(c.deposito)+'</div></div>'+
+    '<button class="x" onclick="cerrarModal()">×</button></div>'+
+    '<img src="'+c.captura+'" style="width:100%;border-radius:14px;border:1px solid var(--linea)">');
+}
+function aprobar(id){ const c=S.citas.find(x=>x.id===id); if(!c) return; c.estado='aprobada'; guardar(); aviso('Cita confirmada'); pintar(); }
+function rechazar(id){
+  const c=S.citas.find(x=>x.id===id); if(!c) return;
+  c.estado='rechazada'; guardar(); aviso('Rechazada, el espacio quedó libre'); pintar();
+}
+function liberar(id){
+  const c=S.citas.find(x=>x.id===id); if(!c) return;
+  c.estado='expirada'; guardar(); aviso('Espacio liberado'); pintar();
+}
+
+/* --- Agenda --- */
+function tabAgenda(){
+  const f = V.admin.fecha || hoyCR();
+  const dia = S.citas.filter(c=>c.fecha===f && !['rechazada','cancelada','expirada'].includes(c.estado))
+                     .sort((a,b)=>aMin(a.hora)-aMin(b.hora));
+  const ocupado = dia.filter(c=>bloquea(c)).reduce((s,c)=>s+c.duracion,0);
+  const bloques = S.horarios[diaSemana(f)] || [];
+  const cerrado = !bloques.length || S.fechasBloqueadas.includes(f);
+
+  let h = '<div class="cal-enc">'+
+    '<button class="flecha" onclick="moverDiaAdmin(-1)">'+ICO.flechaI+'</button>'+
+    '<h3 style="text-align:center;font-size:19px">'+capital(fechaLarga(f))+(f===hoyCR()?' · hoy':'')+'</h3>'+
+    '<button class="flecha" onclick="moverDiaAdmin(1)">'+ICO.flechaD+'</button></div>';
+  h += '<div class="nota" style="text-align:center;margin-bottom:16px">'+
+    (cerrado ? 'Estudio cerrado este día.'
+             : bloques.map(b=>hora12(aMin(b.ini))+' a '+hora12(aMin(b.fin))).join(' · ')+' · '+dur(ocupado)+' ocupados')+
+    '</div>';
+
+  if(!dia.length) h += vacio('No hay citas este día.','hoja');
+  for(const c of dia){
+    h += '<div class="cita">'+encCita(c)+detalleCita(c)+'<div class="acc">';
+    h += botonWA(c);
+    if(c.estado!=='completada') h += '<button class="mini" onclick="modalMover(\''+c.id+'\')">Mover</button>';
+    if(c.estado==='pendiente') h += '<button class="mini g" onclick="aprobar(\''+c.id+'\')">Aprobar</button>';
+    if(c.estado==='aprobada') h += '<button class="mini g" onclick="completar(\''+c.id+'\')">Marcar completada</button>';
+    if(c.estado!=='completada') h += '<button class="mini r" onclick="cancelar(\''+c.id+'\')">Cancelar</button>';
+    h += '</div></div>';
+  }
+  return h;
+}
+function moverDiaAdmin(n){ V.admin.fecha = sumarDias(V.admin.fecha||hoyCR(), n); pintar(); }
+function completar(id){
+  const c=S.citas.find(x=>x.id===id); if(!c) return;
+  c.estado='completada'; c.completada=Date.now(); guardar(); aviso('Sumada a ingresos'); pintar();
+}
+function cancelar(id){
+  const c=S.citas.find(x=>x.id===id); if(!c) return;
+  c.estado='cancelada'; guardar(); aviso('Cita cancelada'); pintar();
+}
+
+/* --- Mover cita --- */
+function modalMover(id){
+  const c = S.citas.find(x=>x.id===id); if(!c) return;
+  V._mover = { id:id, fecha:c.fecha, hora:null };
+  pintarMover();
+}
+function pintarMover(){
+  const m = V._mover, c = S.citas.find(x=>x.id===m.id);
+  let libres = espacios(m.fecha, c.duracion, {excluir:c.id, admin:true});
+  // una cita apartada necesita que el apartado siga durando algo después de moverla
+  if(c.estado === 'apartada')
+    libres = libres.filter(x => minutosHasta(m.fecha, x) - COLCHON_CITA >= APARTADO_MIN);
+
+  let h = '<div class="modal-enc"><div><h3>Mover cita</h3>'+
+    '<div class="nota">'+esc(c.cliente.nombre)+' · '+dur(c.duracion)+' · queda como <b style="font-weight:400">'+etiqueta(c.estado).toLowerCase()+'</b></div></div>'+
+    '<button class="x" onclick="cerrarModal()">×</button></div>';
+  h += '<div class="campo"><label>Día</label><input class="inp" type="date" value="'+m.fecha+'" min="'+hoyCR()+'" onchange="V._mover.fecha=this.value;V._mover.hora=null;pintarMover()"></div>';
+  h += '<div class="campo"><label>Hora disponible</label>';
+  if(!libres.length) h += '<div class="nota-caja">Ese día no tiene un espacio de '+dur(c.duracion)+' libre'+
+    (c.estado==='apartada'?' con margen suficiente para el apartado.':'.')+'</div>';
+  else{
+    h += '<div class="horas">';
+    for(const x of libres) h += '<button class="hora '+(m.hora===x?'sel':'')+'" onclick="V._mover.hora='+x+';pintarMover()">'+hora12(x)+'</button>';
+    h += '</div>';
+  }
+  h += '</div>';
+  if(c.estado === 'apartada' && m.hora != null){
+    h += '<div class="nota-caja">Al mover, el apartado pasa a vencer en <b style="font-weight:400;color:var(--alerta)">'+
+      cuenta(finApartado(m.fecha, m.hora))+'</b>.</div>';
+  }
+  if(m.err) h += '<div class="err">'+m.err+'</div>';
+  h += '<div style="height:10px"></div>';
+  h += '<button class="btn" '+(m.hora==null?'disabled':'')+' onclick="confirmarMover()">Mover</button>';
+  modal(h);
+}
+function confirmarMover(){
+  const m = V._mover, c = S.citas.find(x=>x.id===m.id);
+  if(!c || m.hora==null) return;
+  // se revalida justo antes de guardar, por si algo cambió mientras el modal estaba abierto
+  if(chocaCon(m.fecha, m.hora, c.duracion, c.id)){
+    m.err = 'Ese espacio se acaba de ocupar. Elegí otra hora.';
+    m.hora = null; pintarMover(); return;
+  }
+  c.fecha = m.fecha; c.hora = aHora(m.hora);
+  // la cita conserva su estado; si estaba apartada, el reloj se recalcula
+  if(c.estado === 'apartada') c.apartadoHasta = finApartado(c.fecha, m.hora);
+  guardar(); cerrarModal(); V.admin.fecha = c.fecha; aviso('Cita movida'); pintar();
+}
+
+/* --- Cita manual (para las de siempre, que escriben directo) --- */
+function modalManual(){
+  const p = partesCR();
+  V._man = { serv:[S.servicios[0].id], fecha:p.ymd, hora:null, nombre:'', tel:'', err:'' };
+  pintarManual();
+}
+function pintarManual(){
+  const m = V._man;
+  let minutos = 0, precio = 0;
+  for(const id of m.serv){ const s=servicio(id); if(s){ minutos += s.min; precio += s.precio; } }
+  const p = partesCR();
+  const esHoy = m.fecha === p.ymd;
+  const libres = espacios(m.fecha, minutos, {incluirPasadas:true});
+  const ahoraMin = Math.floor(p.min/5)*5;
+  const ahoraLibre = esHoy && !chocaCon(m.fecha, ahoraMin, minutos);
+
+  let h = '<div class="modal-enc"><div><h3>Cita manual</h3>'+
+    '<div class="nota">Queda confirmada de una, sin pedir depósito.</div></div>'+
+    '<button class="x" onclick="cerrarModal()">×</button></div>';
+
+  h += '<div class="campo"><label>Servicio</label><div class="chips">';
+  for(const s of S.servicios){
+    const on = m.serv.includes(s.id);
+    h += '<button class="chip '+(on?'on':'')+'" onclick="manServ(\''+s.id+'\')">'+esc(s.nombre.replace('semipermanente','semiperm.'))+'</button>';
+  }
+  h += '</div><div class="nota" style="margin-top:7px">'+col(precio)+' · '+dur(minutos)+' · depósito no requerido</div></div>';
+
+  h += '<div class="campo"><label>Nombre</label><input class="inp" id="man-nombre" value="'+esc(m.nombre)+'" oninput="V._man.nombre=this.value" autocomplete="name"></div>';
+  h += '<div class="dos"><div class="campo" style="flex:1"><label>Día</label>'+
+    '<input class="inp" type="date" value="'+m.fecha+'" onchange="V._man.fecha=this.value;V._man.hora=null;pintarManual()"></div>'+
+    '<div class="campo" style="flex:1"><label>Teléfono <span style="text-transform:none;letter-spacing:0">(opcional)</span></label>'+
+    '<input class="inp" inputmode="tel" value="'+esc(m.tel)+'" oninput="V._man.tel=this.value"></div></div>';
+
+  h += '<div class="campo"><label>Hora</label>';
+  h += '<div class="horas">';
+  if(ahoraLibre) h += '<button class="hora '+(m.hora==='ya'?'sel':'')+'" style="grid-column:span 3" onclick="V._man.hora=\'ya\';pintarManual()">Ahora mismo · '+hora12(ahoraMin)+'</button>';
+  for(const x of libres) h += '<button class="hora '+(m.hora===x?'sel':'')+'" onclick="V._man.hora='+x+';pintarManual()">'+hora12(x)+'</button>';
+  h += '</div>';
+  if(!libres.length && !ahoraLibre) h += '<div class="nota-caja" style="margin-top:8px">No hay un espacio de '+dur(minutos)+' libre ese día. Podés mover otra cita o cambiar el horario del día en Configuración.</div>';
+  h += '</div>';
+  if(m.err) h += '<div class="err">'+m.err+'</div>';
+  h += '<div style="height:10px"></div><button class="btn" '+(m.hora==null?'disabled':'')+' onclick="guardarManual()">Guardar cita</button>';
+  modal(h);
+}
+function manServ(id){
+  const m = V._man, i = m.serv.indexOf(id);
+  if(i>=0){ if(m.serv.length>1) m.serv.splice(i,1); }
+  else if(m.serv.length<2) m.serv.push(id);
+  m.hora = null; pintarManual();
+}
+function guardarManual(){
+  const m = V._man;
+  if(!m.nombre.trim()){ m.err='Escribí el nombre de la clienta.'; pintarManual(); return; }
+  const p = partesCR();
+  const inicio = m.hora==='ya' ? Math.floor(p.min/5)*5 : m.hora;
+  let minutos = 0, precio = 0;
+  const servs = m.serv.map(id=>{ const s=servicio(id); minutos+=s.min; precio+=s.precio; return {id:s.id,nombre:s.nombre,precio:s.precio,min:s.min}; });
+  if(chocaCon(m.fecha, inicio, minutos)){ m.err='Ese espacio choca con otra cita.'; pintarManual(); return; }
+  S.citas.push({
+    id:nuevoId(), fecha:m.fecha, hora:aHora(inicio), duracion:minutos,
+    servicios:servs, adicionales:[], total:precio, deposito:0,
+    cliente:{nombre:m.nombre.trim(), tel:m.tel.trim(), email:''},
+    estado:'aprobada', origen:'manual', creada:Date.now(), apartadoHasta:0, comprobante:null, captura:null
+  });
+  guardar(); cerrarModal();
+  V.admin.tab='agenda'; V.admin.fecha=m.fecha;
+  aviso('Cita guardada'); pintar();
+}
+
+/* --- Configuración --- */
+function tabConfig(){
+  let h = '';
+
+  h += '<div class="rot">Horario de atención <span class="tag aviso">provisional</span></div>';
+  h += '<div class="card">';
+  for(let d=1;d<=7;d++){
+    const i = d%7;                                   // lunes primero, domingo al final
+    const bl = S.horarios[i] || [];
+    h += '<div class="dia-cfg"><div class="nom">'+DIAS[i]+(bl.length?'':' <span class="tag">cerrado</span>')+'</div>';
+    bl.forEach((b,k)=>{
+      h += '<div class="fila-h">'+
+        '<input class="inp" type="time" value="'+b.ini+'" onchange="setHora('+i+','+k+',\'ini\',this.value)">'+
+        '<span class="nota">a</span>'+
+        '<input class="inp" type="time" value="'+b.fin+'" onchange="setHora('+i+','+k+',\'fin\',this.value)">'+
+        '<button class="quitar" onclick="quitarBloque('+i+','+k+')">×</button></div>';
+    });
+    h += '<button class="mini" onclick="agregarBloque('+i+')">'+(bl.length?'Agregar otro bloque':'Abrir este día')+'</button>';
+    if(bl.length>1) h += '<div class="nota" style="margin-top:7px">Ningún servicio se parte entre bloques: tiene que caber entero en uno.</div>';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  h += '<div class="rot">Fechas cerradas</div>';
+  h += '<div class="card"><div class="nota" style="margin-bottom:10px">Vacaciones, exámenes de la universidad, días personales. Los espacios de esos días no se ofrecen.</div>';
+  h += '<div class="fila-h"><input class="inp" type="date" id="f-bloq" min="'+hoyCR()+'" style="flex:1;width:auto">'+
+       '<button class="mini" onclick="agregarBloqueo()">Cerrar día</button></div>';
+  if(S.fechasBloqueadas.length){
+    h += '<div class="chips" style="margin-top:10px">';
+    for(const f of S.fechasBloqueadas.slice().sort()) h += '<button class="chip" onclick="quitarBloqueo(\''+f+'\')">'+fechaCorta(f)+' ×</button>';
+    h += '</div>';
+  } else h += '<div class="nota" style="margin-top:8px">Sin fechas cerradas.</div>';
+  h += '</div>';
+
+  h += '<div class="rot">Servicios</div>';
+  h += '<div class="card"><div class="nota" style="margin-bottom:10px">Los precios son los de tu lista. Las duraciones marcadas <span class="tag">estimado</span> las puse yo: corregilas.</div>';
+  h += '<table class="tabla-cfg">';
+  S.servicios.forEach((s,i)=>{
+    h += '<tr><td colspan="3"><div style="font-size:13px;padding-top:8px">'+esc(s.nombre)+(s.todo?' <span class="tag">estimado</span>':'')+'</div></td></tr>'+
+      '<tr><td><input class="inp" value="'+esc(s.nombre)+'" onchange="setServ('+i+',\'nombre\',this.value)"></td>'+
+      '<td class="w-precio"><input class="inp" type="number" step="500" value="'+s.precio+'" onchange="setServ('+i+',\'precio\',this.value)"></td>'+
+      '<td class="w-min"><input class="inp" type="number" step="15" value="'+s.min+'" onchange="setServ('+i+',\'min\',this.value)"></td></tr>';
+  });
+  h += '</table><div class="nota" style="margin-top:8px">Nombre · precio en colones · minutos</div></div>';
+
+  h += '<div class="rot">Adicionales</div>';
+  h += '<div class="card"><table class="tabla-cfg">';
+  S.adicionales.forEach((a,i)=>{
+    h += '<tr><td colspan="3"><div style="font-size:13px;padding-top:8px">'+esc(a.nombre)+(a.porUnidad?' <span class="tag">por unidad</span>':'')+(a.todo?' <span class="tag">estimado</span>':'')+'</div></td></tr>'+
+      '<tr><td><input class="inp" value="'+esc(a.nombre)+'" onchange="setAdic('+i+',\'nombre\',this.value)"></td>'+
+      '<td class="w-precio"><input class="inp" type="number" step="500" value="'+a.precio+'" onchange="setAdic('+i+',\'precio\',this.value)"></td>'+
+      '<td class="w-min"><input class="inp" type="number" step="5" value="'+a.min+'" onchange="setAdic('+i+',\'min\',this.value)"></td></tr>';
+  });
+  h += '</table></div>';
+
+  h += '<div class="rot">Depósito y apartado</div>';
+  h += '<div class="card">'+
+    '<div class="campo"><label>Depósito por servicio</label>'+
+    '<input class="inp" type="number" step="500" value="'+S.config.depositoPorServicio+'" onchange="setCfg(\'depositoPorServicio\',this.value)"></div>'+
+    '<div class="campo"><label>Horas que dura el apartado</label>'+
+    '<input class="inp" type="number" step="1" min="1" value="'+S.config.horasApartado+'" onchange="setCfg(\'horasApartado\',this.value)"></div>'+
+    '<div class="campo"><label>Máximo de apartados sin confirmar por persona</label>'+
+    '<input class="inp" type="number" step="1" min="1" value="'+S.config.maxApartados+'" onchange="setCfg(\'maxApartados\',this.value)"></div>'+
+    '<div class="campo"><label>Número de SINPE Móvil</label>'+
+    '<input class="inp" value="'+esc(S.config.sinpe)+'" onchange="setCfg(\'sinpe\',this.value)"></div>'+
+    '<div class="nota">Dos servicios en una cita piden el doble: '+col(2*S.config.depositoPorServicio)+'. '+
+    'El apartado siempre vence '+COLCHON_CITA+' minutos antes de la cita, aunque le sobre tiempo.</div>'+
+  '</div>';
+
+  h += '<div class="rot">Cuándo se puede reservar</div>';
+  h += '<div class="card">'+
+    '<div class="campo"><label>Anticipación mínima, en minutos</label>'+
+    '<input class="inp" type="number" step="30" min="0" value="'+S.config.anticipacionMinima+'" onchange="setCfg(\'anticipacionMinima\',this.value)">'+
+    '<div class="nota" style="margin-top:6px">Son '+dur(S.config.anticipacionMinima)+'. Nadie puede reservar por el link para dentro de menos de ese rato, '+
+    'para que te dé tiempo de ver el SINPE y confirmar. Las citas que anotás a mano no tienen este límite.</div></div>'+
+    '<div class="campo" style="margin-bottom:0"><label>Días hacia adelante que se pueden reservar</label>'+
+    '<input class="inp" type="number" step="15" min="1" value="'+S.config.diasAdelante+'" onchange="setCfg(\'diasAdelante\',this.value)">'+
+    '<div class="nota" style="margin-top:6px">El calendario llega hasta el '+fechaCorta(sumarDias(hoyCR(), S.config.diasAdelante))+'.</div></div>'+
+  '</div>';
+
+  h += '<div class="rot">Datos de la demo</div>';
+  h += '<div class="card"><div class="nota" style="margin-bottom:10px">Deja las citas de ejemplo como estaban al abrir por primera vez.</div>'+
+    '<button class="mini r" onclick="if(confirm(\'¿Restablecer las citas de ejemplo?\')){reiniciar();V.admin.fecha=hoyCR();pintar();aviso(\'Demo restablecida\')}">Restablecer la demo</button></div>';
+  return h;
+}
+function setHora(d,k,q,v){ if(!v) return; S.horarios[d][k][q]=v; guardar(); aviso('Horario guardado'); pintar(); }
+function quitarBloque(d,k){ S.horarios[d].splice(k,1); guardar(); pintar(); }
+function agregarBloque(d){
+  const bl = S.horarios[d];
+  bl.push(bl.length ? {ini:'14:00',fin:'18:00'} : {ini:'09:00',fin:'18:00'});
+  guardar(); pintar();
+}
+function agregarBloqueo(){
+  const v = (document.getElementById('f-bloq')||{}).value;
+  if(!v) return;
+  if(!S.fechasBloqueadas.includes(v)) S.fechasBloqueadas.push(v);
+  guardar(); aviso('Día cerrado'); pintar();
+}
+function quitarBloqueo(f){ S.fechasBloqueadas = S.fechasBloqueadas.filter(x=>x!==f); guardar(); pintar(); }
+function setServ(i,q,v){ S.servicios[i][q] = (q==='nombre'? v : Math.max(0,parseInt(v,10)||0)); if(q!=='nombre') S.servicios[i].todo=false; guardar(); aviso('Servicio actualizado'); pintar(); }
+function setAdic(i,q,v){ S.adicionales[i][q] = (q==='nombre'? v : Math.max(0,parseInt(v,10)||0)); if(q!=='nombre') S.adicionales[i].todo=false; guardar(); aviso('Adicional actualizado'); pintar(); }
+function setCfg(q,v){
+  const minimos = {horasApartado:1, maxApartados:1, diasAdelante:1};
+  S.config[q] = (q==='sinpe') ? v : Math.max(minimos[q] || 0, parseInt(v,10)||0);
+  guardar(); aviso('Guardado'); pintar();
+}
+
+/* --- Ingresos: solo citas completadas --- */
+function tabIngresos(){
+  const hoy = hoyCR(), sem = inicioSemana(hoy), mes = hoy.slice(0,7);
+  const hechas = S.citas.filter(c=>c.estado==='completada');
+  const sum = arr => arr.reduce((s,c)=>s+c.total,0);
+  const delDia = hechas.filter(c=>c.fecha===hoy);
+  const delSem = hechas.filter(c=>c.fecha>=sem && c.fecha<=sumarDias(sem,6));
+  const delMes = hechas.filter(c=>c.fecha.slice(0,7)===mes);
+
+  let h = '<div class="rot">Cobrado, solo citas completadas</div>';
+  h += '<div class="kpis">'+
+    '<div class="kpi"><div class="k">Hoy</div><div class="v">'+col(sum(delDia))+'</div><div class="s">'+delDia.length+' cita'+(delDia.length===1?'':'s')+'</div></div>'+
+    '<div class="kpi"><div class="k">Semana</div><div class="v">'+col(sum(delSem))+'</div><div class="s">'+delSem.length+' cita'+(delSem.length===1?'':'s')+'</div></div>'+
+    '<div class="kpi"><div class="k">Mes</div><div class="v">'+col(sum(delMes))+'</div><div class="s">'+delMes.length+' cita'+(delMes.length===1?'':'s')+'</div></div>'+
+  '</div>';
+
+  const porLink = S.citas.filter(c=>c.origen==='link' && c.fecha.slice(0,7)===mes && ['aprobada','completada'].includes(c.estado));
+  h += '<div style="height:14px"></div>';
+  h += '<div class="destacado"><div class="et" style="font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--marron-claro)">Citas que entraron solas</div>'+
+    '<div class="v">'+porLink.length+'</div>'+
+    '<div class="nota">agendadas por el link este mes, sin que tocaras el teléfono. '+
+    (porLink.length ? 'Son '+col(porLink.reduce((s,c)=>s+c.total,0))+' coordinados sin escribir un mensaje.' : 'Cuando alguien reserve por el link, se cuenta acá.')+'</div></div>';
+
+  h += '<div class="rot">Desglose del mes por servicio</div>';
+  const cuentas = {};
+  for(const c of delMes){
+    for(const s of c.servicios){
+      cuentas[s.nombre] = cuentas[s.nombre] || {n:0,m:0};
+      cuentas[s.nombre].n++; cuentas[s.nombre].m += s.precio;
+    }
+  }
+  let extras = 0;
+  for(const c of delMes) for(const a of (c.adicionales||[])) extras += a.precio*a.cant;
+  const filas = Object.entries(cuentas).sort((a,b)=>b[1].m-a[1].m);
+  if(!filas.length && !extras) h += vacio('Todavía no hay citas completadas este mes.','hoja');
+  else{
+    h += '<div class="card">';
+    for(const [n,d] of filas) h += '<div class="lin"><span>'+esc(n)+' <span class="nota">× '+d.n+'</span></span><span class="v">'+col(d.m)+'</span></div>';
+    if(extras) h += '<div class="lin sub"><span>Adicionales y retiros</span><span class="v">'+col(extras)+'</span></div>';
+    h += '<div class="lin tot"><span>Total del mes</span><span class="v">'+col(sum(delMes))+'</span></div></div>';
+  }
+
+  const dep = delMes.reduce((s,c)=>s+c.deposito,0);
+  h += '<div class="rot">Cómo entró la plata este mes</div>';
+  h += '<div class="card">'+
+    '<div class="lin"><span>Adelantado por SINPE (depósitos)</span><span class="v">'+col(dep)+'</span></div>'+
+    '<div class="lin"><span>Cobrado en el estudio</span><span class="v">'+col(sum(delMes)-dep)+'</span></div>'+
+    '<div class="lin tot"><span>Total</span><span class="v">'+col(sum(delMes))+'</span></div>'+
+    '<div class="nota" style="margin-top:10px">Los depósitos ya estaban en tu cuenta antes de que la clienta llegara.</div>'+
+  '</div>';
+  return h;
+}
+
+/* ============================================================
+   9. Datos de ejemplo para la demostración
+   ============================================================ */
+function capturaDemo(){
+  // Imagen neutra que representa la captura adjunta en la demo.
+  const c = document.createElement('canvas');
+  c.width = 420; c.height = 260;
+  const x = c.getContext('2d');
+  x.fillStyle = '#EFE9E1'; x.fillRect(0,0,420,260);
+  x.strokeStyle = 'rgba(140,114,89,.35)'; x.lineWidth = 1;
+  x.strokeRect(20.5,20.5,379,219);
+  x.fillStyle = '#8C7259';
+  x.font = '300 15px Jost, sans-serif';
+  x.fillText('Captura del comprobante', 44, 70);
+  x.font = '300 12px Jost, sans-serif';
+  x.fillStyle = '#6E645A';
+  x.fillText('La clienta adjunta acá su pantallazo del SINPE.', 44, 100);
+  x.fillText('Ejemplo de la demo.', 44, 122);
+  x.beginPath();
+  for(let i=0;i<3;i++){ x.moveTo(44,155+i*22); x.lineTo(300-i*60,155+i*22); }
+  x.strokeStyle = 'rgba(181,172,156,.7)'; x.lineWidth = 6; x.stroke();
+  return c.toDataURL('image/jpeg',.72);
+}
+
+function sembrar(){
+  const hoy = hoyCR();
+  // próximos días con horario abierto
+  const abiertos = [];
+  for(let i=0;i<14 && abiertos.length<4;i++){
+    const f = sumarDias(hoy,i);
+    if((S.horarios[diaSemana(f)]||[]).length) abiertos.push(f);
+  }
+  const d0 = abiertos[0]||hoy, d1 = abiertos[1]||sumarDias(hoy,1), d2 = abiertos[2]||sumarDias(hoy,2);
+  // día abierto anterior, para los ingresos del mes
+  let dPrev = hoy;
+  for(let i=1;i<=10;i++){ const f=sumarDias(hoy,-i); if((S.horarios[diaSemana(f)]||[]).length){ dPrev=f; break; } }
+
+  const arma = (nombre, tel, fecha, ids, adics, estado, extra) => {
+    let minutos=0, precio=0;
+    const servs = ids.map(id=>{ const s=servicio(id); minutos+=s.min; precio+=s.precio; return {id:s.id,nombre:s.nombre,precio:s.precio,min:s.min}; });
+    const ads = (adics||[]).map(([id,q])=>{ const a=adicional(id); minutos+=a.min*q; precio+=a.precio*q; return {id:a.id,nombre:a.nombre,precio:a.precio,min:a.min,cant:q}; });
+    const pref = (extra&&extra.pref) || 9*60;
+    let libres = espacios(fecha, minutos, {incluirPasadas:true});
+    // una cita completada tiene que haber terminado ya
+    if(estado === 'completada' && fecha === hoyCR()){
+      libres = libres.filter(x => x + minutos <= minCR());
+    }
+    if(!libres.length) return null;
+    let mejor = libres[0];
+    for(const x of libres) if(Math.abs(x-pref) < Math.abs(mejor-pref)) mejor = x;
+    const c = {
+      id:nuevoId(), fecha, hora:aHora(mejor), duracion:minutos, servicios:servs, adicionales:ads,
+      total:precio, deposito: estado==='manual' ? 0 : ids.length*S.config.depositoPorServicio,
+      cliente:{nombre, tel, email: nombre.toLowerCase().split(' ')[0]+'@correo.com'},
+      estado, origen:(extra&&extra.origen)||'link', creada:Date.now()-3600e3,
+      // el apartado de ejemplo tampoco puede vencer después de su propia cita
+      apartadoHasta: (extra&&extra.apartadoHasta) ? Math.min(extra.apartadoHasta, finApartado(fecha, mejor)) : 0,
+      comprobante:(extra&&extra.comprobante)||null,
+      captura:(extra&&extra.captura)||null
+    };
+    if(estado==='completada') c.completada = Date.now();
+    S.citas.push(c);
+    return c;
+  };
+
+  // orden importa: cada cita respeta las anteriores
+  // la de hoy solo se siembra si ya terminó; si es muy temprano, cae al día abierto anterior
+  if(!arma('Karol Jiménez','+506 8812 4497', hoy, ['s7'], [['a1',1]], 'completada', {pref:9*60, comprobante:'0091-4471'}))
+    arma('Karol Jiménez','+506 8812 4497', dPrev, ['s7'], [['a1',1]], 'completada', {pref:9*60, comprobante:'0091-4471'});
+  arma('Sofía Alvarado','+506 7043 1188', dPrev, ['s1'], [], 'completada', {pref:13*60, comprobante:'0088-2210'});
+  arma('Mariana Solís','+506 8604 2231', d0, ['s3'], [['a1',1]], 'aprobada', {pref:15*60, comprobante:'0102-7734'});
+  arma('Gabriela Vargas','+506 6012 8890', d1, ['s1','s8'], [['a4',2]], 'aprobada', {pref:9*60, comprobante:'0103-1902'});
+  arma('Daniela Rojas','+506 8399 5521', d1, ['s2'], [], 'pendiente', {pref:14*60, comprobante:'0104-6650', captura:capturaDemo()});
+  arma('Andrea Mora','+506 7188 3364', d2, ['s4'], [['a2',1]], 'apartada', {pref:9*60, apartadoHasta: Date.now() + 82*60*1000});
+  arma('Valeria Chaves','+506 8925 7110', d2, ['s6'], [], 'rechazada', {pref:13*60, comprobante:'0105-2288'});
+}
+
+/* ============================================================
+   10. Arranque y reloj
+   ============================================================ */
+function pintar(){
+  let dentro;
+  if(V.pantalla === 'admin')        dentro = verAdmin();
+  else if(V.pantalla === 'reserva') dentro = verCliente();
+  else                              dentro = verInicio();
+  document.getElementById('app').innerHTML =
+    '<div class="marco'+(V.pantalla==='admin'?' ancho':'')+'">'+dentro+'</div>';
+  marcarNav();
+}
+
+function tic(){
+  const cambio = liberarExpiradas();
+  // Solo se repinta si el vencimiento afecta lo que hay en pantalla; así no
+  // se pierde el foco de un campo que se esté escribiendo en ese segundo.
+  if(cambio && (V.pantalla === 'admin' || V.paso === 6)){
+    pintar();
+    return;
+  }
+  for(const el of document.querySelectorAll('[data-cuenta]')){
+    const c = S.citas.find(x=>x.id===el.getAttribute('data-cuenta'));
+    if(c) el.textContent = cuenta(c.apartadoHasta);
+  }
+}
+
+(function inicio(){
+  S = cargar();
+  if(!S){ S = datosIniciales(); sembrar(); guardar(); }
+  else {
+    // completa datos que falten de versiones anteriores del archivo
+    const base = datosIniciales();
+    for(const k in base.config) if(S.config[k] === undefined) S.config[k] = base.config[k];
+    if(!S.citas) S.citas = [];
+  }
+  V.admin.fecha = hoyCR();
+  V.paso = 1;
+  liberarExpiradas();
+  pintar();
+  setInterval(tic, 1000);
+  window.addEventListener('scroll', marcarNav, {passive:true});
+})();
+</script>
+</body>
+</html>
